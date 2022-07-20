@@ -1,0 +1,26 @@
+.searchbar {
+    width: 100%;
+    height: auto;
+}
+
+.searchbar .text {
+    font-family: Helvetica;
+    font-size: 3vw;
+    text-align: center;
+    margin-top: 5%;
+}
+
+.searchbar .bar {
+    position: absolute;
+    padding: 2%;
+    width: 50%;
+    height: 7%;
+    font-family: Helvetica;
+    margin-left: 25%;
+    margin-right: 25%;
+    margin-top: 2%;
+    font-size: 2vw;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 4px 15px #00000055;
+}
