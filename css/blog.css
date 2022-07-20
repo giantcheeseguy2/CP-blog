@@ -1,0 +1,30 @@
+.blog {
+    width: 60%;
+    margin-left: 20%;
+}
+
+.blog {
+    font-family: Helvetica;
+    text-align: left;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 30px;
+}
+
+.blog h1 {
+    text-align: center;
+    font-size: 80px;
+    color: #000000;
+}
+
+.blog h2 {
+    font-size: 50px;
+    color: #000000;
+}
+
+.blog pre code {
+    font-size: 20px;
+}
+
+.blog code {
+    font-size: 20px;
+}
