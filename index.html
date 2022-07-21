@@ -5,6 +5,7 @@
         <link rel="stylesheet" href="./css/navbar.css">    
         <link rel="stylesheet" href="./css/searchbar.css">
         <link rel="stylesheet" href="./css/results.css">
+        <link rel="stylesheet" href="./css/tags.css">
         <script src="./mathscribe/jquery-1.4.3.min.js"></script>
         <script src="./mathscribe/jqmath-etc-0.4.6.min.js" charset="utf-8"></script>
         <title>Oursaco Blog | Home</title>
@@ -29,18 +30,28 @@
                     <button onclick="toggle('addDropdown')" class="addButton">Add Tag</button>
                     <div id="addDropdown" class="bar">
                         <input type="text" placeholder="Search..." id="addInput" onkeyup="filterDropdown()" class="tagSearch">
-                        <button class="tagButton" id="Test0" onclick="toggleTag('Test')">+ Test</button>
+                        <button class="tagButton" id="segment tree0" onclick="toggleTag('segment tree')">+ segment tree</button>
+                        <button class="tagButton" id="data structure0" onclick="toggleTag('data structure')">+ data structure</button>
                     </div>
                 </div>
                 <div class="container">
                     <button onclick="toggle('removeDropdown')" class="removeButton">Remove Tag</button>
                     <div id="removeDropdown" class="bar">
                         <input type="text" placeholder="Search..." id="removeInput" onkeyup="filterDropdown()" class="tagSearch">
-                        <button class="tagButton" id="Test1" onclick="toggleTag('Test')"># Test</button>
+                        <button class="tagButton" id="segment tree1" onclick="toggleTag('segment tree')"># segment tree</button>
                     </div>
                 </div>
             </div>
             <div class="results" id="blogs">
+                <div class="card" onclick="window.location.href='./posts/test.html'">
+                    <h1>This is a Title</h1>
+                    <div class="tag-container" style="margin-left:20px;width:80%;min-width:80%;justify-content:left;">
+                        <div class="tag"><p>data structure</p></div>
+                        <div class="tag"><p>segment tree</p></div>
+                    </div>
+                    <p>This is a very detailed description</p>
+                    <p style="align-self:flex-end; position: absolute;">7/21/2022</p>
+                </div>
             </div>
         </div>
     </body>
@@ -58,8 +69,24 @@
 
         function updateResults(){
             var filter = document.getElementById("searchBar").value.toLowerCase();
-            var list = document.getElementById("blogs").getElementsByClassName("blog");
-            
+            var list = document.getElementById("blogs").getElementsByClassName("card");
+            var tagList = document.getElementById("removeDropdown").getElementsByTagName("button");
+            for(let i = 0; i < list.length; i++){
+                let str = list[i].getElementsByTagName("h1")[0].innerHTML;
+                if(str.toLowerCase().indexOf(filter) == -1) list[i].style.display = "none";
+                else {
+                    let tags = list[i].getElementsByClassName("tag");
+                    var set = new Set();
+                    for(let j = 0; j < tags.length; j++){
+                        set.add(tags[j].getElementsByTagName("p")[0].innerHTML);
+                    }
+                    list[i].style.display = "block";
+                    for(let j = 0; j < tagList.length; j++){
+                        let str = tagList[j].textContent;
+                        if(str.charAt(0) == '-' && !set.has(str.substring(2))) list[i].style.display = "none";
+                    }
+                }
+            }
         }
 
         function filterDropdown(){
@@ -96,7 +123,6 @@
         }
 
         function toggle(name){
-            console.log("hi");
             var x = document.getElementById(name);
             if(x.style.display == "none") x.style.display = "block";
             else x.style.display = "none";

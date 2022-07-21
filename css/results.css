@@ -1,12 +1,45 @@
 .results {
     display: flex;
     position: absolute;
-    width: 50%;
-    min-width: 400px;
+    width: 80%;
+    min-width: 640px;
     margin: auto;
     margin-top: 95px;
-    height: 1000px;
-    z-index: -1;
+    padding: 0;
+    z-index: 1;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.results .card {
+    margin: 10px;
+    height: 300px;
+    width: 40%;
+    min-width: 400px;
+    border-radius: 5px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ddd;
+    display: flex;
     justify-content: left;
-    padding: 5%;
+    flex-direction: column;
+}
+
+.results .card:hover {
+    cursor: pointer;
+    box-shadow: 0px 0px 8px 1px rgba(0, 0, 0, 0.1);
+}
+
+.results .card h1 {
+    font-family: Helvetica;
+    font-size: 40px;
+    margin: 20px;
+    margin-bottom: 0;
+}
+
+.results .card p {
+    font-family: Helvetica;
+    color: rgba(0, 0, 0, 0.5);
+    font-size: 20px;
+    margin: 20px;
 }
