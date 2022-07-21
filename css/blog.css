@@ -1,9 +1,7 @@
 .blog {
     width: 60%;
     margin-left: 20%;
-}
-
-.blog {
+    min-width: 480px;
     font-family: Helvetica;
     text-align: left;
     color: rgba(0, 0, 0, 0.6);
@@ -14,6 +12,7 @@
     text-align: center;
     font-size: 80px;
     color: #000000;
+    margin-bottom: 10px;
 }
 
 .blog h2 {

@@ -1,7 +1,7 @@
-title:This is a test
+title:Testing Title
 date:2022-07-20
 tags:data structure, segment tree
-# Testing Title
+---
 ## Testing Header
 
 Testing *Italic*

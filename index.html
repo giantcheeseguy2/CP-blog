@@ -9,20 +9,92 @@
         <title>Oursaco Blog | Home</title>
     </head>
     
-    <body style="margin:0;">
+    <body style="margin:0;" onload="filterDropdown()">
         <div class="navbar">
-            <img src="images/logo.jpg" class="logo">
+            <img src="/images/logo.jpg" class="logo">
             <div class="title"><b>Oursaco</b> Blog</div>
-            <button class="current" onclick="window.location.href='/index.html'"><a href="index.html">Home</a></button>
-            <button class="button" onclick="window.location.href='/about.html'"><a href="about.html">About</a></button> 
-            <button class="button" onclick="window.location.href='/links.html'"><a href="links.html">Links</a></button>
+            <button class="current" onclick="window.location.href='/index.html'"><a href="/index.html">Home</a></button>
+            <button class="button" onclick="window.location.href='/about.html'"><a href="/about.html">About</a></button> 
+            <button class="button" onclick="window.location.href='/links.html'"><a href="/links.html">Links</a></button>
         </div>
         <div style="width:100%;height:15%;"></div>
         <div class="searchbar">
-            <h1 class="text" id="searchBar" onkeyup="updateResults()">Search For Posts</h1>
-            <input class="bar" type="text" placeholder="Search..">
+            <h1 class="text">Search For Posts</h1>
+            <input class="bar" type="text" id="searchBar" onkeyup="updateResults()" placeholder="Search..">
         </div>
+        <div style="display:flex; justify-content:center; width:100%; min-width:800px;">
+            <div class="tagbar">
+                <div class="addBar">
+                    <button onclick="toggle('addDropdown')" class="addButton">Add Tag</button>
+                    <div id="addDropdown" class="add">
+                        <input type="text" placeholder="Search..." id="addInput" onkeyup="filterDropdown()" class="tagSearch">
+                        <button class="tagButton" id="Test0" onclick="toggleTag('Test')">+ Test</button>
+                    </div>
+                </div>
+                <div class="removeBar">
+                    <button onclick="toggle('removeDropdown')" class="removeButton">Remove Tag</button>
+                    <div id="removeDropdown" class="remove">
+                        <input type="text" placeholder="Search..." id="removeInput" onkeyup="filterDropdown()" class="tagSearch">
+                        <button class="tagButton" id="Test1" onclick="toggleTag('Test')"># Test</button>
+                    </div>
+                </div>
+            </div>
+        </div>  
     </body>
     <script>
+
+        function toggleTag(id){
+            var id0 = document.getElementById(id + '0');
+            var id1 = document.getElementById(id + '1');
+            if(id0.textContent.charAt(0) == '#') id0.textContent = '+' + id0.textContent.substring(1);
+            else id0.textContent = '#' + id0.textContent.substring(1);
+            if(id1.textContent.charAt(0) == '#') id1.textContent = '-' + id1.textContent.substring(1);
+            else id1.textContent = '#' + id1.textContent.substring(1);
+            filterDropdown();
+        }
+
+        function updateResults(){
+        }
+
+        function filterDropdown(){
+            var div, list, filter;
+            filter = document.getElementById("addInput").value.toLowerCase();
+            div = document.getElementById("addDropdown");
+            list = div.getElementsByTagName("button");
+            for(let i = 0; i < list.length; i++){
+                let str = list[i].textContent;
+                if(str.charAt(0) != '+'){
+                    list[i].style.display = "none";
+                    continue;
+                }
+                if (str.toLowerCase().indexOf(filter) != -1) {
+                    list[i].style.display = "";
+                } else {
+                    list[i].style.display = "none";
+                }
+            }
+            filter = document.getElementById("removeInput").value.toLowerCase();
+            div = document.getElementById("removeDropdown");
+            list = div.getElementsByTagName("button");
+            for(let i = 0; i < list.length; i++){
+                let str = list[i].textContent;
+                if(str.charAt(0) != '-'){
+                    list[i].style.display = "none";
+                    continue;
+                }
+                if (str.toLowerCase().indexOf(filter) != -1) {
+                    list[i].style.display = "";
+                } else {
+                    list[i].style.display = "none";
+                }
+            }
+        }
+
+        function toggle(name){
+            console.log("hi");
+            var x = document.getElementById(name);
+            if(x.style.display == "none") x.style.display = "block";
+            else x.style.display = "none";
+        }
     </script>
 </html>
