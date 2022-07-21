@@ -12,7 +12,8 @@ tag: contest strategy
 ## Thinking
 - Write down thoughts.
 - If stuck over 10 mins, reread statements.
-	- Weird conditions? Properties?
+	- Weird conditions
+	- Properties
 - Guess time complexity.
 - Try to reduce the problem, but if stuck on a reduction for over 10 minutes, try a different approach.
 - Possible Approaches:
