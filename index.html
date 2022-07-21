@@ -25,16 +25,16 @@
         </div>
         <div style="display:flex; justify-content:center; width:100%; min-width:800px;">
             <div class="tagbar">
-                <div class="addBar">
+                <div class="container">
                     <button onclick="toggle('addDropdown')" class="addButton">Add Tag</button>
-                    <div id="addDropdown" class="add">
+                    <div id="addDropdown" class="bar">
                         <input type="text" placeholder="Search..." id="addInput" onkeyup="filterDropdown()" class="tagSearch">
                         <button class="tagButton" id="Test0" onclick="toggleTag('Test')">+ Test</button>
                     </div>
                 </div>
-                <div class="removeBar">
+                <div class="container">
                     <button onclick="toggle('removeDropdown')" class="removeButton">Remove Tag</button>
-                    <div id="removeDropdown" class="remove">
+                    <div id="removeDropdown" class="bar">
                         <input type="text" placeholder="Search..." id="removeInput" onkeyup="filterDropdown()" class="tagSearch">
                         <button class="tagButton" id="Test1" onclick="toggleTag('Test')"># Test</button>
                     </div>

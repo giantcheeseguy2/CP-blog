@@ -29,9 +29,10 @@
     width: 200px;
     height: 30px;
     border: none;
-    border-bottom-width: 1px;
-    border-bottom: solid;
-    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.tagSearch:focus {
+    outline: none;
 }
 
 .tagButton {
@@ -40,11 +41,11 @@
     width: 200px;
     height: 30px;
     border: none;
-    background-color: rgba(0, 0, 0, 0);
+    background-color: #ffffff;
 }
 
 .tagButton:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: #ddd;
 }
 
 .tagbar {
@@ -57,14 +58,25 @@
     justify-content: left;
 }
 
-.tagbar .addBar {
+.tagbar .container {
     position: static;
     display: inline-block;
     margin: 10px;
     width: 200px;
 }
 
-.tagbar .addBar .addButton {
+.tagbar .container .bar {
+    display: none;
+    position: absolute;
+    width: 200px;
+    overflow: auto;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ddd;
+    z-index: 1;
+}
+
+.addButton {
     padding: 10px;
     margin-bottom: 0px;
     background-color: #04AA6D;
@@ -75,26 +87,11 @@
     cursor: pointer;
 }
 
-.tagbar .addBar .addButton:hover{
+.addButton:hover{
     opacity: 0.9;
 }
 
-.tagbar .addBar .add {
-    display: none;
-    width: 200px;
-    border-style: solid;
-    border-width: 1px;
-    border-color: rgba(0, 0, 0, 0.1);
-    z-index: 1;
-}
-.tagbar .removeBar {
-    position: static;
-    display: inline-block;
-    margin: 10px;
-    width: 200px;
-}
-
-.tagbar .removeBar .removeButton {
+.removeButton {
     padding: 10px;
     margin-bottom: 0px;
     background-color: #aa0404;
@@ -105,7 +102,7 @@
     cursor: pointer;
 }
 
-.tagbar .removeBar .removeButton:hover{
+.removeButton:hover{
     opacity: 0.9;
 }
 
@@ -114,6 +111,6 @@
     width: 100%;
     border-style: solid;
     border-width: 1px;
-    border-color: rgba(0, 0, 0, 0.1);
+    border-color: #ddd;
     z-index: 1;
 }
