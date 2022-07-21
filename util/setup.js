@@ -14,10 +14,7 @@ var reader = new commonmark.Parser();
 var writer = new commonmark.HtmlRenderer();
 
 fs.readdir(read, (err, files) => {
-    if (err) {
-        throw err;
-    }
-
+    if(err) throw err;
     files.forEach(file => {
         fs.readFile(read + file, 'utf8', (err, data) => {
             if(err) throw err;
@@ -26,7 +23,9 @@ fs.readdir(read, (err, files) => {
             let date = line[1].split(':')[1].replace('\r', '');
             let tags = line[2].split(':')[1].replace('\r', '').split(',');
             let content = '';
-            for(let i = 3; i < line.length; i++) content += line[i];
+            for(let i = 3; i < line.length; i++){
+                content += line[i] + '\n';
+            }
             let html_tags = '';
             for(let i = 0; i < tags.length; i++) html_tags += '<div class="tag"><p>' + tags[i] + '</p></div>';
             let value = template1 + title + template2 + writer.render(reader.parse('# ' + title)) + '<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">' + date + '</div>' + template3 + html_tags + template4 + writer.render(reader.parse(content)) + template5;
@@ -36,11 +35,11 @@ fs.readdir(read, (err, files) => {
             });
             let id = {
                 "title": title,
-                "dir": 'posts/' + path.parse(file).name + '.html',
+                "dir": './posts/' + path.parse(file).name + '.html',
                 "date": date,
                 "tags": tags
             };
-            fs.writeFile(write2 + path.parse(file).name + '.json', JSON.stringify(id), err => {
+            fs.writeFile(write2 + date + '-' + path.parse(file).name + '.json', JSON.stringify(id), err => {
                 if(err) throw err;
                 console.log(file + " has been successfully parsed 2/2");
             });
