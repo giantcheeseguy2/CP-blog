@@ -1,6 +1,7 @@
 const commonmark = require('commonmark');
 const fs = require('fs');
 const path = require('path');
+
 const read = '../posts-md/';
 const write1 = '../posts/'
 const write2 = '../posts-data/'
