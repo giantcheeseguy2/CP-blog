@@ -26,11 +26,11 @@
 }
 
 .tagSearch {
-    width: 100%;
+    width: 200px;
     height: 30px;
     border: none;
-    border-bottom: solid;
     border-bottom-width: 1px;
+    border-bottom: solid;
     border-color: rgba(0, 0, 0, 0.1);
 }
 
@@ -80,9 +80,8 @@
 }
 
 .tagbar .addBar .add {
-    box-sizing: border-box;
     display: none;
-    width: 100%;
+    width: 200px;
     border-style: solid;
     border-width: 1px;
     border-color: rgba(0, 0, 0, 0.1);
