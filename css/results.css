@@ -1,0 +1,10 @@
+.results {
+    display: flex;
+    position: absolute;
+    width: 50%;
+    min-width: 400px;
+    margin: auto;
+    margin-top: 90px;
+    height: 1000px;
+    z-index: -1;
+}

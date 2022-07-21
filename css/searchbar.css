@@ -30,7 +30,7 @@
     height: 30px;
     border: none;
     border-bottom: solid;
-    border-width: 1px;
+    border-bottom-width: 1px;
     border-color: rgba(0, 0, 0, 0.1);
 }
 
@@ -41,7 +41,6 @@
     height: 30px;
     border: none;
     background-color: rgba(0, 0, 0, 0);
-    opacity: 1;
 }
 
 .tagButton:hover {

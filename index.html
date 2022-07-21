@@ -1,9 +1,10 @@
 <html>
 	
     <head>
-	    <link rel="stylesheet" href="mathscribe/jqmath-0.4.3.css">	
-	    <link rel="stylesheet" href="css/navbar.css">	
-        <link rel="stylesheet" href="css/searchbar.css">
+	    <link rel="stylesheet" href="/mathscribe/jqmath-0.4.3.css">	
+	    <link rel="stylesheet" href="/css/navbar.css">	
+        <link rel="stylesheet" href="/css/searchbar.css">
+        <link rel="stylesheet" href="/css/results.css">
 	    <script src="mathscribe/jquery-1.4.3.min.js"></script>
 	    <script src="mathscribe/jqmath-etc-0.4.6.min.js" charset="utf-8"></script>
         <title>Oursaco Blog | Home</title>
@@ -11,7 +12,7 @@
     
     <body style="margin:0;" onload="filterDropdown()">
         <div class="navbar">
-            <img src="/images/logo.jpg" class="logo">
+            <img src="images/logo.jpg" class="logo">
             <div class="title"><b>Oursaco</b> Blog</div>
             <button class="current" onclick="window.location.href='/index.html'"><a href="/index.html">Home</a></button>
             <button class="button" onclick="window.location.href='/about.html'"><a href="/about.html">About</a></button> 
@@ -39,7 +40,9 @@
                     </div>
                 </div>
             </div>
-        </div>  
+            <div class="results">
+            </div>
+        </div>
     </body>
     <script>
 
