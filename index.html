@@ -40,7 +40,7 @@
                     </div>
                 </div>
             </div>
-            <div class="results">
+            <div class="results" id="blogs">
             </div>
         </div>
     </body>
@@ -57,13 +57,15 @@
         }
 
         function updateResults(){
+            var filter = document.getElementById("searchBar").value.toLowerCase();
+            var list = document.getElementById("blogs").getElementsByClassName("blog");
+            
         }
 
         function filterDropdown(){
-            var div, list, filter;
+            var list, filter;
             filter = document.getElementById("addInput").value.toLowerCase();
-            div = document.getElementById("addDropdown");
-            list = div.getElementsByTagName("button");
+            list = document.getElementById("addDropdown").getElementsByTagName("button");
             for(let i = 0; i < list.length; i++){
                 let str = list[i].textContent;
                 if(str.charAt(0) != '+'){
@@ -71,14 +73,13 @@
                     continue;
                 }
                 if (str.toLowerCase().indexOf(filter) != -1) {
-                    list[i].style.display = "";
+                    list[i].style.display = "block";
                 } else {
                     list[i].style.display = "none";
                 }
             }
             filter = document.getElementById("removeInput").value.toLowerCase();
-            div = document.getElementById("removeDropdown");
-            list = div.getElementsByTagName("button");
+            list = document.getElementById("removeDropdown").getElementsByTagName("button");
             for(let i = 0; i < list.length; i++){
                 let str = list[i].textContent;
                 if(str.charAt(0) != '-'){
@@ -86,11 +87,12 @@
                     continue;
                 }
                 if (str.toLowerCase().indexOf(filter) != -1) {
-                    list[i].style.display = "";
+                    list[i].style.display = "block";
                 } else {
                     list[i].style.display = "none";
                 }
             }
+            updateResults();
         }
 
         function toggle(name){
