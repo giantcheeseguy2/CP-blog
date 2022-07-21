@@ -6,7 +6,7 @@ tag: contest strategy
 
 ## General
 -   Focus at one problem at a time.
--   Make sure to leave at least 30 minutes for each problem.
+-   Make sure to leave at least 1 hour for each problem.
 -   Spend at least 10 mins on each problem coding brute force.
 
 ## Thinking
