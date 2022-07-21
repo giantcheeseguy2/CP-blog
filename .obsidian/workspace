@@ -9,7 +9,7 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "README.md",
+            "file": "posts-md/contest-strategy.md",
             "mode": "source",
             "source": false
           }
@@ -77,7 +77,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "README.md",
+                "file": "posts-md/contest-strategy.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -94,7 +94,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "README.md",
+                "file": "posts-md/contest-strategy.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -117,7 +117,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "README.md"
+                "file": "posts-md/contest-strategy.md"
               }
             }
           }
@@ -129,5 +129,9 @@
     "collapsed": true
   },
   "active": "ee205ab7d54179d0",
-  "lastOpenFiles": []
+  "lastOpenFiles": [
+    "blog-template.md",
+    "README.md",
+    "posts-md/contest-strategy.md"
+  ]
 }
