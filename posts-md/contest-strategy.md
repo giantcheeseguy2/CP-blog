@@ -24,5 +24,7 @@ tag: contest strategy
     - Binary Lifting
     - DP
     - Divide and Conquer
+    - Offline
+    - Backwards
 - Make sure to spend at least 5 mins thinking about each type of algorithm.
 - Try to combine algorithms.
