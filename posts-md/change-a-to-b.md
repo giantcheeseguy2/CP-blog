@@ -4,15 +4,16 @@ tag: codeforces, bitmask, dp
 
 ---
 ## Problem Statement
-You are given two arrays $A$ and $B$ of length $N$. In one operation, you can choose two indices $i$, $j$ and an integer $x$, and do the following:
--   $A_i:=A_i+x$
--   $A_j:=A_j−x$
-What is the minimum number of operations to make $A=B$. Output $-1$ if impossible.
-	($-10^6 \le A_i \le 10^6$, $N \le 22$)
+[Problem - B - Codeforces](https://codeforces.com/group/7AnJwV5ocB/contest/390595/problem/B)
 
+You are given two arrays \\(A\\) and \\(B\\) of length \\(N\\). In one operation, you can choose two indices \\(i\\), \\(j\\) and an integer \\(x\\), and do the following:
+-   \\(A_i=A_i+x\\)
+-   \\(A_j=A_j−x\\)
+
+What is the minimum number of operations to make \\(A=B\\). Output \\(-1\\) if impossible.
+	(\\(-10^6≤A_i≤10^6\\), \\(N≤22\\))
 ## Solution
-The low bound on $N$ suggests a $N\*2^N$ solution. Lets consider a bitmask solution where $dp[i]$ represents the minimum steps to make the mask of $i$ equal. Notice that instead of always choosing two indices $i$ and $j$, you can instead store a running sum. Whenever you pick an index $i$, make it equal, then add the difference to the running sum. If the running sum is equal to $A_i$, it means that all of the previous indeces you have chosen beforehand now have a corresponding $j$ to move value from. Final complexity is $O(N\*2^N)$
-
+The low bound on \\(N\\) suggests a \\(N\\cdot2^N\\) solution. Lets consider a bitmask solution where \\(dp[i]\\) represents the minimum steps to make the mask of \\(i\\) equal. Notice that instead of always choosing two indices \\(i\\) and \\(j\\), you can instead store a running sum. Whenever you pick an index \\(i\\), make it equal, then add the difference to the running sum. If the running sum is equal to \\(A_i\\), it means that all of the previous indeces you have chosen beforehand now have a corresponding \\(j\\) to move value from. Final complexity is \\(O(N\\cdot2^N)\\)
 ## Code
 ```c++
 #pragma GCC optimize("O3")

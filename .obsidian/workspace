@@ -9,7 +9,7 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "posts-md/change-a-to-b.md",
+            "file": "posts-md/contest-strategy.md",
             "mode": "source",
             "source": false
           }
@@ -77,7 +77,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "posts-md/change-a-to-b.md",
+                "file": "posts-md/contest-strategy.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -94,7 +94,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "posts-md/change-a-to-b.md",
+                "file": "posts-md/contest-strategy.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -117,7 +117,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "posts-md/change-a-to-b.md"
+                "file": "posts-md/contest-strategy.md"
               }
             }
           }
@@ -130,9 +130,9 @@
   },
   "active": "ee205ab7d54179d0",
   "lastOpenFiles": [
+    "posts-md/change-a-to-b.md",
     "posts-md/contest-strategy.md",
     "blog-template.md",
-    "posts-md/change-a-to-b.md",
     "README.md"
   ]
 }
