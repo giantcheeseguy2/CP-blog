@@ -10,7 +10,7 @@ tag: luogu, persistent segtree, segtree merge, kruskal tree, tutorial
 
 ## Solution
 
-Solving this problem offline is trivial. Do a dsu where each component stores an ordered set, and use small to large to merge. Then, for each query, query the kth largest value in the ordered set of the query's component. This gives us an \\(O(n log^2 n)\\) solution. We can also use segment tree merge instead of small to large for an \\(O(n log n)\\) solution. Notice that we can use a kruskal tree to maintain the set of all vertices in each componenet at a given time, and by merging persistent segtrees, we can query the kth largest value. of a component at a given time. This gives us a \\(O(n log n)\\) solution.
+Solving this problem offline is trivial. Do a dsu where each component stores an ordered set, and use small to large to merge. Then, for each query, query the kth largest value in the ordered set of the query's component. This gives us an \\(O(n log^2 n)\\) solution. We can also use segment tree merge instead of small to large for an \\(O(n log n)\\) solution. Notice that we can use a kruskal tree to maintain the set of all vertices in each component at a given time, and by merging persistent segtrees, we can query the kth largest value. of a component at a given time. This gives us a \\(O(n log n)\\) solution.
 
 ## Code
 
