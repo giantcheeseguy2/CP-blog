@@ -25,6 +25,7 @@ tag: contest strategy
     - Hashing
     - Data Structure
     - Binary Lifting
+    - Binary Search
     - DP
     - Divide and Conquer
     - Offline
