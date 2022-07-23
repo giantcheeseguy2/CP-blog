@@ -10,7 +10,7 @@ tag: luogu, segtree, segtree merge, chtholly tree
 
 ## Solution
 
-This is a template segtree merge problem. Maintain a set of inc/dec intervals. In each interval maintain a segtree that represents the set of numbers that are contained within that interval, as well as a value indicating if the interval is sorted forwards or backwards. When sorting an interval, we want to split the intervals that intersect it, then merge everything together. Merging is easy, as it is just merging segment trees. Splitting is also easy, there is just some casework on whether the interval being split is sorted or not. Every query will split at most twice, and every interval will only be merged once, making the total complexity \\(O(N log N)\\).
+This is a template segtree merge problem. Maintain a set of increasing/decreasing intervals. In each interval maintain a segtree that represents the set of numbers that are contained within that interval, as well as a value indicating if the interval is sorted forwards or backwards. When sorting an interval, we want to split the intervals that intersect it, then merge everything together. Merging is easy, as it is just merging segment trees. Splitting is also easy, there is just some casework on whether the interval being split is sorted or not. Every query will split at most twice, and every interval will only be merged once, making the total complexity \\(O(N log N)\\).
 
 ## Code
 
