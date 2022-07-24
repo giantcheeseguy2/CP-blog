@@ -10,11 +10,7 @@ tag: codeforces, segtree, sweep
 
 ## Solution
 
-First make the observation that the largest value will always lie on a peak of an update. This is intuitive. After this, we have reduced the number of potential points from \\(10^9\\) to just \\(2\\cdot10^5\\). Now, lets break up each update into two parts:
-- \\(x_i \\ge j\\)
-- \\(x_i < j\\)
-
-If \\(x_i \\ge j\\), then the accumulation will be \\(p_i - x_i + j\\), otherwise the accumulation will be \\(p_i + j - x_i\\). To make sure that negative accumulation isn't added, for the \\(x_i \\ge j\\) case, only consider values with \\(p_i - x_i \\ge -j\\), and for the other case, only consider values with \\(p_i - x_i \\ge j\\). Therefore, the final values can be found using a two sweeps. Now, to find the answer, maintain a segtree of the maximum value of a range. Now for each update peak, find all the peaks it affects that are to its left and right. For the left case, all values  in the updated range must satisfy \\(val_j - j \\le m + p_i - x_i\\). For the right case, all values must satisfy \\(val_j + j \\le m + p_i - x_i\\). All values outside of the range also have to be \\(\\le M\\).
+First make the observation that the largest value will always lie on a peak of an update. This is intuitive. After this, we have reduced the number of potential points from \\(10^9\\) to just \\(2\\cdot10^5\\). Now, lets break up each update into two parts: \\(x_i \\ge j\\) and\\(x_i < j\\). If \\(x_i \\ge j\\), then the accumulation will be \\(p_i - x_i + j\\), otherwise the accumulation will be \\(p_i + j - x_i\\). To make sure that negative accumulation isn't added, for the \\(x_i \\ge j\\) case, only consider values with \\(p_i - x_i \\ge -j\\), and for the other case, only consider values with \\(p_i - x_i \\ge j\\). Therefore, the final values can be found using a two sweeps. Now, to find the answer, maintain a segtree of the maximum value of a range. Now for each update peak, find all the peaks it affects that are to its left and right. For the left case, all values  in the updated range must satisfy \\(val_j - j \\le m + p_i - x_i\\). For the right case, all values must satisfy \\(val_j + j \\le m + p_i - x_i\\). All values outside of the range also have to be \\(\\le M\\).
 
 ## Code
 
