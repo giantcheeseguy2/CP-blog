@@ -30,5 +30,8 @@ tag: contest strategy
     - Divide and Conquer
     - Offline
     - Backwards
+    - Fix a variable
+    - Visualize on a 2d Plane
+    - Flows
 - Make sure to spend at least 5 mins thinking about each type of algorithm.
 - Try to combine algorithms.
