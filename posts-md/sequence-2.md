@@ -1,6 +1,6 @@
 title: Sequence 2 (Tutorial)
 date: 7-23-2022
-tag: hdu, persistent segtree
+tag: hdu, persistent segtree, segtree
 
 ---
 

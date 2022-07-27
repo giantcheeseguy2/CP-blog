@@ -32,7 +32,6 @@ fs.readdir(read, (err, files) => {
             let value = template1 + title + template2 + writer.render(reader.parse('# ' + title)) + '<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">' + date + '</div>' + template3 + html_tags + template4 + writer.render(reader.parse(content)) + template5;
             fs.writeFile(write1 + path.parse(file).name + '.html', value, err => {
                 if(err) throw err;
-                console.log(file + " has been successfully parsed 1/2");
             });
             let id = {
                 "title": title,
@@ -42,8 +41,8 @@ fs.readdir(read, (err, files) => {
             };
             fs.writeFile(write2 + date + '-' + path.parse(file).name + '.json', JSON.stringify(id), err => {
                 if(err) throw err;
-                console.log(file + " has been successfully parsed 2/2");
             });
         });
     });
+    console.log("files have been parsed")
 });

@@ -18,6 +18,7 @@ tag: contest strategy
 	- Properties
 - Guess time complexity.
 - Try to reduce the problem, but if stuck on an idea for over 5 minutes, try a different approach.
+- Try to solve an easier version of the problem, but if stuck for over 5 minutes, try a different approach.
 - Possible Approaches:
     - Greedy
     - Sqrt
