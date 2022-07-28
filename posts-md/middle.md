@@ -148,5 +148,5 @@ int main(){
         node a = query(que[0], que[1] - 1, rt[l]), b = query(que[1], que[2], rt[l]), c = query(que[2] + 1, que[3], rt[l]);
         cout << (prv = dict[l]) << "\n";
     }
-}
+    }
 ```

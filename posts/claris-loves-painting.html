@@ -1,0 +1,128 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog |  Claris Loves Painting (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Claris Loves Painting (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;"> 7-28-2022</div></div> <div class="tag-container"><div class="tag"><p> hdu</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> persistent segtree</p></div><div class="tag"><p> segtree merge</p></div><div class="tag"><p> tree</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://acm.hdu.edu.cn/showproblem.php?pid=5709">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Persistent segtree is often used to solve problems that have a restriction on one dimension and are forced online. So lets build a persistent segtree for each node, with the \(i\)th leaf storing how many unique colors have a depth of \(i\). To make sure this doesn't overcount, for every color we will only store the smallest depth. Finding the answer for each root is just merging persistent segtrees. Now to remove the overcounting when merging multiple subtrees, we can store a map of each color and its optimal depth in each node. Subtract all the ones the colors that have a larger depth than the smallest. Each node's color will only be merged once, so there are only \(N\) updates to the persistent segtree. Segtree merging is \(O(N log N)\), and the small to large for the map of the colors is \(O(N log^2 N)\), so our final complexity is \(O(N log^2 N)\).</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int seg[20000000], left0[20000000], right0[20000000];
+int n, q, sz;
+
+int copy(int x){
+    seg[sz] = seg[x];
+    left0[sz] = left0[x];
+    right0[sz] = right0[x];
+    return sz++;
+}
+
+void update(int x, int v, int cur, int l = 1, int r = n){
+    if(l == r){
+        seg[cur] += v;
+        return;
+    }
+    int mid = (l + r)/2;
+    if(x &lt;= mid) update(x, v, left0[cur] = copy(left0[cur]), l, mid);
+    else update(x, v, right0[cur] = copy(right0[cur]), mid + 1, r);
+    seg[cur] = seg[left0[cur]] + seg[right0[cur]];
+}
+
+int merge(int a, int b){
+    if(!a &amp;&amp; ! b) return 0;
+    if(!a || !b) return copy(a ^ b);
+    int ret = copy(a);
+    left0[ret] = merge(left0[a], left0[b]);
+    right0[ret] = merge(right0[a], right0[b]);
+    seg[ret] = seg[a] + seg[b];
+    return ret;
+}
+
+int query(int l, int r, int cur, int ul = 1, int ur = n){
+    if(l &lt;= ul &amp;&amp; ur &lt;= r) return seg[cur];
+    if(ur &lt; l || ul &gt; r) return 0;
+    int mid = (ul + ur)/2;
+    return query(l, r, left0[cur], ul, mid) + query(l, r, right0[cur], mid + 1, ur);
+}
+
+int depth[100005], rt[100005];
+vector&lt;int&gt; g[100005];
+map&lt;int, int&gt; ma[100005];
+int arr[100005];
+
+void dfs(int x, int p){
+    depth[x] = depth[p] + 1;
+    seg[sz] = left0[sz] = right0[sz] = 0;
+    rt[x] = sz++;
+    update(depth[x], 1, rt[x]);
+    ma[x][arr[x]] = depth[x];
+    for(int i : g[x]){
+        dfs(i, x);
+        if(ma[i].size() &gt; ma[x].size()) ma[x].swap(ma[i]);
+        rt[x] = merge(rt[x], rt[i]);
+        for(pii j : ma[i]){
+            int v = ma[x][j.ff];
+            if(v &amp;&amp; v &lt;= j.ss) update(j.ss, -1, rt[x]);
+            else {
+                if(v) update(v, -1, rt[x]);
+                ma[x][j.ff] = j.ss;
+            } 
+        }
+    }
+}
+
+int main(){
+    setIO();
+    int t;
+    cin &gt;&gt; t;
+    for(int tt = 1; tt &lt;= t; tt++){
+        cin &gt;&gt; n &gt;&gt; q;
+        sz = 1;
+        for(int i = 1; i &lt;= n; i++) cin &gt;&gt; arr[i], g[i].clear(), ma[i].clear();
+        for(int i = 2; i &lt;= n; i++){
+            int x;
+            cin &gt;&gt; x;
+            g[x].pb(i);
+        }
+        depth[1] = 0;
+        dfs(1, 1);
+        int prv = 0;
+        while(q--){
+            int a, b;
+            cin &gt;&gt; a &gt;&gt; b;
+            a ^= prv, b ^= prv;
+            prv = query(depth[a], depth[a] + b, rt[a]);
+            cout &lt;&lt; prv &lt;&lt; &quot;\n&quot;;
+        }
+    }
+}
+</code></pre>
+</div> </body> </html>
