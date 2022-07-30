@@ -1,6 +1,6 @@
 title: Tree Rotation (Tutorial)
 date: 7-22-2022
-tag: loj, segtree, segtree merge, tree
+tag: loj, segtree, segtree merge, tree, tutorial
 
 ---
 

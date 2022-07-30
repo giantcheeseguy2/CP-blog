@@ -1,6 +1,6 @@
 title: Claris Loves Painting (Tutorial)
 date: 7-28-2022
-tag: hdu, segtree, persistent segtree, segtree merge, tree
+tag: hdu, segtree, persistent segtree, segtree merge, tree, tutorial
 
 ---
 

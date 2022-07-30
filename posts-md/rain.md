@@ -1,6 +1,6 @@
 title: Rain (Tutorial)
 date: 7-24-2022
-tag: codeforces, segtree, sweep
+tag: codeforces, segtree, sweep, tutorial
 
 ---
 

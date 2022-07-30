@@ -1,6 +1,6 @@
 title: Sorting (Tutorial)
 date: 7-22-2022
-tag: luogu, segtree, segtree merge, chtholly tree
+tag: luogu, segtree, segtree merge, chtholly tree, tutorial
 
 ---
 

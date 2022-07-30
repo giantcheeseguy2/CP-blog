@@ -1,6 +1,6 @@
 title: Missing Coin Sum Queries (Tutorial)
 date: 7-25-2022
-tag: cses, persistent segtree, segtree
+tag: cses, persistent segtree, segtree, tutorial
 
 ---
 
