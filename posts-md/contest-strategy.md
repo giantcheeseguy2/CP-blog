@@ -35,5 +35,6 @@ tag: contest strategy
     - Visualize on a 2d Plane
     - Flows
     - Prefix Sums
+    - Visualize as a graph/tree
 - Make sure to spend at least 5 mins thinking about each type of algorithm.
 - Try to combine algorithms.
