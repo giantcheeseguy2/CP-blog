@@ -1,6 +1,6 @@
 title: Magical Array (Tutorial)
 date: 8-3-2022
-tag: codeforces, invarianc  e, tutorial
+tag: codeforces, invariance, tutorial
 
 ---
 
