@@ -19,6 +19,7 @@ tag: contest strategy
 - Guess time complexity.
 - Try to reduce the problem, but if stuck on an idea for over 5 minutes, try a different approach.
 - Try to solve an easier version of the problem, but if stuck for over 5 minutes, try a different approach.
+- After solving a problem or getting stuck, try taking a break from thinking for a couple minutes. After coming back, reset and pretend like you are starting a new contest.
 - Possible Approaches:
     - Greedy
     - Sqrt
