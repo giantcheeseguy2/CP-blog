@@ -1,6 +1,6 @@
 title: Peaks Plus (Tutorial)
 date: 7-21-2022
-tag: luogu, persistent segtree, segtree merge, kruskal tree, tutorial, binary lifting, tutorial
+tag: luogu, persistent segtree, segtree merge, kruskal tree, binary lifting, tutorial
 
 ---
 
