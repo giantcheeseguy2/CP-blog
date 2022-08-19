@@ -1,6 +1,6 @@
 title: Wiring Engineering (Tutorial)
 date: 8-18-2022
-tag: codeforces, dp, divide and conquer, tutorial
+tag: codeforces, dp, simulated dp, divide and conquer, tutorial
 
 ---
 
