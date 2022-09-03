@@ -5,8 +5,7 @@
 <h2>Solution</h2>
 <p>The first observation is that the lcm of \(i\), \(j\), and \(k\) must be a multiple of \(k\). This leads us to a complementary counting solution where we want to count the number of invalid triples. Thanks to the property above, an invalid triple is either when \(lcm(i, j, k) = k\) or \(lcm(i, j, k) = 2 \cdot k\) and \(i + j \ge k\). The second case is easier, so lets solve it first. First of all, for \(i + j \ge k\) to be true, \(j &gt; k/2\) must also be true. To satisfy the other condition, \(j\) must divide \(2k\). Therefore, \(j\) can only be \(2k/3\) (\(2k/2\) is too big, \(2k/4\) is too small). Since \(j\) is determined, it means that \(k/3 &lt; i &lt; 2k/3\). Now, using the same logic as before, \(i\) is either \(2k/5\) or \(k/2\). So for the second case, the triples are either \((k/2, 2k/3, k)\) or \((2k/5, 2k/3, k)\). For the first case, the only condition is that \(i\) and \(j\) must divide \(k\). Since the entire triple must be nested in an interval to be valid, lets count the number of \(j\) for any pair \(i\) and \(k\). Now we can process the queries offline iterate over \(k\) and use a range sum data structure to store the number of triples with a given \(i\).</p>
 <h2>Code</h2>
-<pre><code class="language-c++">//https://codeforces.com/contest/1712/problem/E2
-#pragma GCC optimize(&quot;O3&quot;)
+<pre><code class="language-c++">#pragma GCC optimize(&quot;O3&quot;)
 #pragma GCC optimization (&quot;unroll-loops&quot;)
 #pragma GCC target(&quot;avx,avx2,fma&quot;)
 #pragma GCC target(&quot;sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,tune=native&quot;)
