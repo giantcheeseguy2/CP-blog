@@ -19,6 +19,7 @@ tag: contest strategy
 - First thing to do is work out samples/write out cases and notice properties. Helps solve the problem and verifies your understanding.
 - Write down everything while thinking
     - When formulating a solution, write down all thoughts no matter how useful they seem. They will eventually lead somewhere.
+        - Every equivalence
         - Every reduction
         - Every observation
         - Every algorithm or trick

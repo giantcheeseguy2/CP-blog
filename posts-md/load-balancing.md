@@ -6,11 +6,11 @@ tag: usaco, segtree, tutorial
 
 ## Problem Statement
 
-[Problem Link](https://codeforces.com/gym/103388/problem/L)
+[Problem Link](http://www.usaco.org/index.php?page=viewproblem2&cpid=624)
 
 ## Solution
 
-Finding the minimum max immediately suggests a binary search solution, so how can we check the value? Lets say we are checking if \\(m\\) is valid. First of all, lets fix a line. Whenever we move the line, some cows move from one group to another, which amortizes to \\(O(N)\\). Now, we have two sets of points on a number line, and we want to find a way to split both sets into two groups that have at most some \\(m\\) points. First of all, it is always optimal to put the line at the first position where the first half of both groups has at most \\(m\\) points. Now, it just comes down to checking if that position splits it equally enough. This can be maintained with a segtree.
+Finding the minimum maximum immediately suggests a binary search solution, so how can we check the value? Lets say we are checking if \\(m\\) is valid. First of all, lets fix a line. Whenever we move the line, some cows move from one group to another, which amortizes to \\(O(N)\\). Now, we have two sets of points on a number line, and we want to find a way to split both sets into two groups that have at most some \\(m\\) points. First of all, it is always optimal to put the line at the first position where the first half of both groups has at most \\(m\\) points. Now, it just comes down to checking if that position splits it equally enough. This can be maintained with a segtree.
 
 ## Code
 ```c++
