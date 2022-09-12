@@ -4,7 +4,7 @@ const read = '../posts-data/';
 var tags = new Set();
 var cardHTML = '';
 var files = fs.readdirSync(read);
-files.forEach(file => {
+files.reverse().forEach(file => {
     let value = JSON.parse(fs.readFileSync(read + file));
     cardHTML += '<div class="card" onclick="window.location.href=\'' + value.dir + '\'"> <h1>' + value.title + '</h1> <div class="tag-container" style="margin:20px;width:80%;min-width:80%;justify-content:left;">';
     for(let i = 0; i < value.tags.length; i++){

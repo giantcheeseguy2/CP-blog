@@ -20,9 +20,9 @@ fs.readdir(read, (err, files) => {
         fs.readFile(read + file, 'utf8', (err, data) => {
             if(err) throw err;
             let line = data.split('\n');
-            let title = line[0].split(':')[1].replace('\r', '');
-            let date = line[1].split(':')[1].replace('\r', '');
-            let tags = line[2].split(':')[1].replace('\r', '').split(',');
+            let title = line[0].split(': ')[1].replace('\r', '').replace();
+            let date = line[1].split(': ')[1].replace('\r', '');
+            let tags = line[2].split(': ')[1].replace('\r', '').split(',');
             let content = '';
             for(let i = 3; i < line.length; i++){
                 content += line[i] + '\n';
@@ -38,8 +38,11 @@ fs.readdir(read, (err, files) => {
                 "dir": './posts/' + path.parse(file).name + '.html',
                 "date": date,
                 "tags": tags
-            };
-            fs.writeFile(write2 + date + '-' + path.parse(file).name + '.json', JSON.stringify(id), err => {
+            }; 
+            let val = date.split('-');
+            if(val[0].length == 1) val[0] = '0' + val[0];
+            if(val[1].length == 1) val[1] = '0' + val[1];
+            fs.writeFile(write2 + val[0] + '-' + val[1] + '-' + val[2] + '-' + path.parse(file).name + '.json', JSON.stringify(id), err => {
                 if(err) throw err;
             });
         });
