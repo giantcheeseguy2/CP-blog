@@ -1,6 +1,6 @@
 title: Shuttle Bus (Tutorial)
 date: 9-7-2022
-tag: cf, dp, tree, tutorial
+tag: codeforces, dp, tree, tutorial
 
 ---
 
