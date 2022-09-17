@@ -1,6 +1,6 @@
 title: Paint By Rectangles (Tutorial)
-date: 8-16-2022
-tag: usaco, segtree, dsu
+date: 9-15-2022
+tag: usaco, segtree, dsu, tutorial
 
 ---
 
@@ -10,7 +10,7 @@ tag: usaco, segtree, dsu
 
 ## Solution
 
-If all the rectangles intersect, then you can use the euler formula to find the total number sections, as \\(f = e - v + 2\\). Calculating the number of edges and vertices are easy with a sweep. However, this is completely unrelated to the final solution. Lets maintain a dsu 
+If all the rectangles intersect, then you can use the euler formula to find the total number sections, as \\(f = e - v + 2\\). Calculating the number of edges and vertices are easy with a sweep. Now, lets try to find a way to count the number of black components. When you start a rectangle, you are increasing the number of black rectangles by the number of white subsegments it will intersect with. When you end a rectangle, it will increase the number of black rectangles by the number of white subsegments, as well as potentially decreasing the number of black rectangles by one. However, this only works if the entire rectangle is connected, so we need to use a segtree with dsu to find all connected components. Finally, we have to flip a component if it is completely covered. 
 
 ## Code
 
@@ -155,19 +155,21 @@ int main(){
     for(int i = 1; i <= n; i++) ans[find(i)] = 1;
     for(int i = 1; i <= 2*n; i++){
         for(auto j : in[i]){
-            if(i == mn[j.ss]){
-                flip[j.ss] = queryb(j.ff.ff)%2;
-            }
+            if(i == mn[j.ss]) flip[j.ss] = queryb(j.ff.ff)%2;
             s[j.ss].insert(j.ff.ff), s[j.ss].insert(j.ff.ss);
             updateb(j.ff.ff, 1), updateb(j.ff.ss, -1);
-            int a = s[j.ss].order_of_key(j.ff.ff), b = s[j.ss].order_of_key(j.ff.ss);
+            int a = s[j.ss].order_of_key(j.ff.ff) + 1, b = s[j.ss].order_of_key(j.ff.ss) + 1;
             ans[j.ss] += b - a - 1;
-            black[j.ss] += ceil0(b, 2) - ceil0(a, 2) - 1;
+            //number of white segments under b
+            //number of white segments under a
+            black[j.ss] += b/2 - a/2;
         }
         for(auto j : out[i]){
-            int a = s[j.ss].order_of_key(j.ff.ff), b = s[j.ss].order_of_key(j.ff.ss);
+            int a = s[j.ss].order_of_key(j.ff.ff) + 1, b = s[j.ss].order_of_key(j.ff.ss) + 1;
             ans[j.ss] += b - a - 1;
-            black[j.ss] += ceil0(b, 2) - ceil0(a, 2);
+            //number of white segments under b
+            //number of white segments under a
+            black[j.ss] += b/2 - a/2 - 1;
             s[j.ss].erase(j.ff.ff), s[j.ss].erase(j.ff.ss);
             updateb(j.ff.ff, -1), updateb(j.ff.ss, 1);
         }

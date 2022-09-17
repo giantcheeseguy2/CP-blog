@@ -1,0 +1,138 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Cave Paintings (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Cave Paintings (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">9-16-2022</div></div> <div class="tag-container"><div class="tag"><p>usaco</p></div><div class="tag"><p> dp</p></div><div class="tag"><p> dsu</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="http://www.usaco.org/index.php?page=viewproblem2&amp;cpid=996">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets first compress all adjacent cells on the same row into one node for convenience. The obvious requirement is that if a node is filled with water, then every node that it is directly under it will also need to be filled with water. This gives us a dag. However, the property also gurantees that any two nodes that point to the same node also point to each other. After compressing the cycles, we end up with a tree. Computing the tree can be done with a dsu, and computing the answer is just some simple math.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt;   pll;
+
+const int inf = 1000000000;
+const int mod = 1000000007;
+const double PI = acos(-1);
+
+struct chash {
+    const uint64_t C = ll(2e18*PI)+71;
+    const int RANDOM = rand();
+    ll operator()(ll x) const {
+        return __builtin_bswap64((x^RANDOM)*C);
+    }
+};
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+template&lt;class K, class V&gt; using gphash = gp_hash_table&lt;K, V, chash, equal_to&lt;K&gt;, direct_mask_range_hashing&lt;&gt;, linear_probe_fn&lt;&gt;, hash_standard_resize_policy&lt; hash_exponential_size_policy&lt;&gt;, hash_load_check_resize_trigger&lt;&gt;, true&gt; &gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+inline ll floor0(ll a, ll b) {
+    return a / b - ((a ^ b) &lt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+set&lt;int&gt; g[2000000];
+ll dp[2000000];
+int par[2000000];
+bool root[2000000];
+
+int find(int x){
+    if(par[x] == x) return x;
+    return par[x] = find(par[x]);
+}
+
+void merge(int x, int y){
+    par[find(x)] = find(y);
+}
+
+void dfs(int x){
+    dp[x] = 1;
+    for(int i : g[x]){
+        dfs(i);
+        dp[x] *= dp[i];
+        dp[x] %= mod;
+    }
+    dp[x]++;
+}
+
+int main(){
+    setIO();
+    freopen(&quot;cave.in&quot;, &quot;r&quot;, stdin);
+    freopen(&quot;cave.out&quot;, &quot;w&quot;, stdout);
+    int n, m;
+    cin &gt;&gt; n &gt;&gt; m;
+    char arr[n][m];
+    int comp[n][m], sz = 0;
+    memset(comp, -1, sizeof(comp));
+    for(int i = 0; i &lt; n; i++){
+        for(int j = 0; j &lt; m; j++){
+            cin &gt;&gt; arr[i][j];
+        }
+    }
+    for(int i = 0; i &lt; 2*n*m; i++) par[i] = i;
+    for(int i = n - 1; i &gt;= 1; i--){
+        for(int j = 1; j &lt; m; j++){
+            if(arr[i][j] == '.' &amp;&amp; arr[i][j] == arr[i][j - 1]){
+                merge(i*m + j, i*m + j - 1);
+            }
+        }
+    }
+    for(int i = n - 1; i &gt;= 1; i--){
+        int nxt[m];
+        memset(nxt, -1, sizeof(nxt));
+        for(int j = 0; j &lt; m; j++){
+            if(arr[i - 1][j] == '.' &amp;&amp; arr[i][j] == '.'){
+                nxt[j] = find(i*m + j);
+            }
+        }
+        map&lt;int, int&gt; ma;
+        for(int j = 0; j &lt; m; j++){
+            if(nxt[j] == -1) continue;
+            if(ma[nxt[j]]) merge(ma[nxt[j]], (i - 1)*m + j);
+            ma[nxt[j]] = find((i - 1)*m + j);
+        }
+    }
+    for(int i = n - 1; i &gt;= 1; i--){
+        for(int j = 1; j &lt; m; j++){
+            if(arr[i][j] == '.') if(find(i*m + j) == i*m + j) comp[i][j] = sz++;
+        } 
+        for(int j = 1; j &lt; m; j++){ 
+            if(arr[i][j] == '.') comp[i][j] = comp[find(i*m + j)/m][find(i*m + j)%m];
+        }
+    }
+    memset(root, true, sizeof(root));
+    for(int i = 0; i &lt; n - 1; i++){
+        for(int j = 0; j &lt; m; j++){
+            if(arr[i][j] == '.' &amp;&amp; arr[i][j] == arr[i + 1][j]){
+                g[comp[i][j]].insert(comp[i + 1][j]);
+                root[comp[i + 1][j]] = false;
+            }
+        }
+    }
+    ll ans = 1;
+    for(int i = 0; i &lt; sz; i++){
+        if(root[i]){
+            dfs(i);
+            ans *= dp[i];
+            ans %= mod;
+        }
+    }
+    cout &lt;&lt; ans &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

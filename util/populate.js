@@ -6,7 +6,7 @@ var cardHTML = '';
 var files = fs.readdirSync(read);
 files.reverse().forEach(file => {
     let value = JSON.parse(fs.readFileSync(read + file));
-    cardHTML += '<div class="card" onclick="window.location.href=\'' + value.dir + '\'"> <h1>' + value.title + '</h1> <div class="tag-container" style="margin:20px;width:80%;min-width:80%;justify-content:left;">';
+    cardHTML += '<div class="card" onclick="window.open(\'' + value.dir + '\', \'_blank\');"> <h1>' + value.title + '</h1> <div class="tag-container" style="margin:20px;width:80%;min-width:80%;justify-content:left;">';
     for(let i = 0; i < value.tags.length; i++){
         cardHTML += '<div class="tag"><p>' + value.tags[i] + '</p></div>';
         tags.add(value.tags[i]);

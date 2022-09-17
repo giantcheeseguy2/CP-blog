@@ -1,0 +1,172 @@
+title: New Barns (Tutorial)
+date: 9-16-2022
+tag: usaco, centroid decomposition, tree, tutorial
+
+---
+
+## Problem Statement
+
+[Problem Link](http://www.usaco.org/index.php?page=viewproblem2&cpid=817)
+
+## Solution
+
+Lets construct the complete forest before handling any of the queries. Now, the problem becomes, activate a node or query the farthest distance to any activated node. This is a classic centroid decomposition problem, just be sure to avoid the node's subtree when traversing the centroid tree.
+
+## Code
+
+```c++
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef pair<ld, ld> pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template<class K> using sset =  tree<K, null_type, less<K>, rb_tree_tag, tree_order_statistics_node_update>;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) > 0 && a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+vector<int> g[100005];
+int sub[100005];
+int par[100005];
+bool vis[100005];
+
+void dfs1(int x, int p = 0){
+    sub[x] = 1;
+    for(int i : g[x]){
+        if(vis[i] || i == p) continue;
+        dfs1(i, x);
+        sub[x] += sub[i];
+    }
+}
+
+int centroid(int x, int tar, int p = 0){
+    for(int i : g[x]){
+        if(vis[i] || i == p) continue;
+        if(sub[i]*2 > tar) return centroid(i, tar, x);
+    }
+    return x;
+}
+
+void build(int x, int p = 0){
+    dfs1(x);
+    int c = centroid(x, sub[x]);
+    vis[c] = true;
+    par[c] = p;
+    for(int i : g[c]) if(!vis[i]) build(i, c);
+}
+
+int jump[100005][19];
+int depth[100005];
+
+void dfs2(int x, int p){
+    jump[x][0] = p;
+    depth[x] = depth[p] + 1;
+    for(int i : g[x]){
+        if(i == p) continue;
+        dfs2(i, x);
+    }
+}
+
+int lca(int a, int b){
+    if(depth[a] > depth[b]) swap(a, b);
+    for(int i = 18; i >= 0; i--) if(depth[jump[b][i]] >= depth[a]) b = jump[b][i];
+    if(a == b) return a;
+    for(int i = 18; i >= 0; i--) if(jump[b][i] != jump[a][i]) b = jump[b][i], a = jump[a][i];
+    return jump[a][0];
+}
+
+set<pii> mx[100005];
+int val[100005];
+
+void upd(int x){
+    int cur = 0; 
+    mx[x].insert({0, x});
+    int orig = x;
+    while(x){
+        if(par[x]){
+            cur = depth[orig] + depth[par[x]] - 2*depth[lca(orig, par[x])];
+            if(val[x] != -1){
+                mx[par[x]].erase({val[x], x});
+                val[x] = max(val[x], cur);
+                mx[par[x]].insert({val[x], x});
+            } else {
+                val[x] = cur;
+                mx[par[x]].insert({val[x], x});
+            }
+        }
+        x = par[x];
+    }
+}
+
+int query(int x, int v){
+    if((*mx[x].rbegin()).ss == v) return (*prev(prev(mx[x].end()))).ff;
+    return (*mx[x].rbegin()).ff;
+}
+
+int que(int x){
+    int cur = 0;
+    int ret = max(0, query(x, x));
+    int orig = x;
+    while(x){
+        if(par[x]){
+            cur = depth[orig] + depth[par[x]] - 2*depth[lca(orig, par[x])];
+            ret = max(ret, query(par[x], x) + cur);
+        }
+        x = par[x];
+    }
+    return ret;
+}
+
+int main(){
+    setIO();
+    freopen("newbarn.in", "r", stdin);
+    freopen("newbarn.out", "w", stdout);
+    int q;
+    cin >> q;
+    pii arr[q];
+    int cur = 1;
+    int cnt = 0;
+    int id[q];
+    for(int i = 0; i < q; i++){
+        char c;
+        int x;
+        cin >> c >> x;
+        arr[i] = {(c == 'B' ? 0 : 1), x};
+        if(c == 'B'){
+            if(x != -1) g[x].pb(cur), g[cur].pb(x);
+            id[i] = cur;
+            cur++;
+        }
+    }
+    for(int i = 1; i < cur; i++) if(!vis[i]){
+        build(i);
+        dfs2(i, i);
+    }
+    for(int i = 1; i < 19; i++) for(int j = 1; j < cur; j++) jump[j][i] = jump[jump[j][i - 1]][i - 1];
+    for(int i = 1; i < cur; i++) mx[i].insert({-INF, -INF}), val[i] = -1;
+    for(int i = 0; i < q; i++){
+        if(arr[i].ff) cout << que(arr[i].ss) << endl;
+        else upd(id[i]);
+    }
+}
+```
