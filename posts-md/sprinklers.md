@@ -1,6 +1,6 @@
 title: Sprinklers (Tutorial)
 date: 9-20-2022
-tag: usaco, segtree, , tutorial
+tag: usaco, segtree, tutorial
 
 ---
 
