@@ -34,6 +34,7 @@ int merge(int a, int b){
     right0[a] = merge(right0[a], right0[b]);
     if(!left0[a] && !right0[a]) seg[a] = seg[a] + seg[b]; //merge if its a leaf
     else seg[a] = seg[left0[a]] + seg[right0[a]]; //pull if its not a leaf
+    return a;
 }
 ```
 
