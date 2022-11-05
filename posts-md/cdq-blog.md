@@ -16,4 +16,61 @@ For the case of 2d point add rectangle sum, lets write out all the conditions st
 
 ```c++
 
+typedef long long ll;
+typedef pair<int, int> pii;
+
+struct query {
+    bool upd;
+    int v, x, y, ind; //v - value, x - x coord, y - y coord, ind - index of query
+};
+
+int bit[MAXN];
+
+void update(int x, int v){
+    for(; x <= n; x += x & (-x)) bit[x] += v;
+}
+
+int query(int x, int ret = 0){
+    for(; x; x -= x & (-x)) ret += bit[x];
+    return ret;
+}
+
+ll ans[MAXQ];
+
+vector<query> que;
+
+void dnq(int l = 0, int r = que.size() - 1){
+    if(l == r) return;
+    int mid = (l + r)/2;
+    dnq(l, mid);
+    dnq(mid + 1, r);
+    int a = l, b = mid + 1;
+    vector<pii> v1; //list of operations to undo
+    vector<query> v2; //sorted queries
+    int sum = 0;
+    //sort using 2 pointer, and also process contributions
+    while(a <= mid && b <= r){
+        if(que[a].x <= que[b].x){
+            //if its an update, add to contribution
+            if(que[a].upd){
+                update(que[a].y, que[a].v);
+                v1.pb({que[a].y, -que[a].v});
+            }
+            v2.pb(que[a++]);
+        } else {
+            //if its a query, count the contribution
+            if(!que[b].upd) ans[que[b].ind] += query(que[b].y);
+            v2.pb(que[b++]);
+        }
+    }
+    //finish processing contributions
+    while(a <= mid) v2.pb(que[a++]);
+    while(b <= r){
+        if(!que[b].upd) ans[que[b].ind] query(que[b].ss.ss);
+        v2.pb(que[b++]);
+    }
+    for(pii i : v1) update(i.ff, i.ss);
+    v1.clear();
+    for(int i = l; i <= r; i++) que[i] = v2[i - l];
+}
 ```
