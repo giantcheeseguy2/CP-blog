@@ -1,6 +1,6 @@
 title: Middle (Tutorial)
 date: 7-26-2022
-tag: luogu, persistent segtree, segtree, binary search
+tag: luogu, persistent segtree, segtree, binary search, tutorial
 
 ---
 

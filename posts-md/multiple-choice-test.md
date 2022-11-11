@@ -1,6 +1,6 @@
 title: Multiple Choice Test (Tutorial)
 date: 8-16-2022
-tag: usaco, convex hull, minkowski sums
+tag: usaco, convex hull, minkowski sums, tutorial
 
 ---
 

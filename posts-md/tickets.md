@@ -1,6 +1,6 @@
 title: Tickets (Tutorial)
 date: 9-15-2022
-tag: usaco, segtree, graph
+tag: usaco, segtree, graph, shortest path, tutorial
 
 ---
 
