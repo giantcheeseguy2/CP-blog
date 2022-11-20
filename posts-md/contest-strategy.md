@@ -16,7 +16,7 @@ tag: contest strategy
 - Unless full solution is relatively obvious, try to solve each subtask
     - If you have a subtask solution just code it. The time cost is not that high.
     - Always code a trivial brute force and verify it by submitting. It will verify your understanding as well as being helpful for stress testing
-- First thing to do is work out samples/write out cases and notice properties. Helps solve the problem and verifies your understanding.
+- First thing to do is work out samples/write out cases and notice properties. Helps solve the problem and verifies your understanding. Work out base cases and try to think from small to large.
 - Write down everything while thinking
     - When formulating a solution, write down all thoughts no matter how useful they seem. They will eventually lead somewhere.
         - Every equivalence
