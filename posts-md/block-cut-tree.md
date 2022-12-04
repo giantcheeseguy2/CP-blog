@@ -24,7 +24,7 @@ If there are multiple node biconnected components, they will either be connected
 
 ### Edges
 
-Stores which edges are in each node biconnected component. Note that we should not consider down edges 
+Stores which edges are in each node biconnected component. Note that we should not consider down edges since those will have already been considered before (If \\(i\\) is visited after \\(x\\), then the edge from \\(i\\) to \\(x\\) would have already checked, so checking the edge from \\(x\\) to \\(i\\) would be overcounting). We also will pop out the root even if it is not an articulation point, since if it is not then the stack would only contain the root anyways. 
 
 ```c++
 void dfs(int x, int p = 0){
