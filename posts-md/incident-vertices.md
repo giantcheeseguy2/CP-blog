@@ -1,6 +1,6 @@
 title: Incident Vertices (Tutorial)
 date: 7-30-2022
-tag: codeforces, hld, persistent segtree, segtree, tutorial
+tag: cf, hld, persistent segtree, segtree, tutorial
 
 ---
 

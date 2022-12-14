@@ -19,7 +19,7 @@ Note for the directed case, we need to make sure that \\(i\\) is inside the stac
 ```c++
 void dfs(int x){
 	dfn[x] = low[x] = ++tim;
-    in[x] = true;
+	in[x] = true;
 	st.push(x);
 	for(int i : g[x]){
 		if(!dfn[i]){
@@ -29,12 +29,12 @@ void dfs(int x){
 	}
 	if(low[x] == dfn[x]){
 		while(st.top() != x){
-            in[s.top()] = false;
+			in[s.top()] = false;
 			comp[st.top()] = x;
 			st.pop();
 		}
-        in[x] = false;
-        comp[x] = x;
+		in[x] = false;
+		comp[x] = x;
 		st.pop();
 	}
 }
@@ -46,21 +46,21 @@ There is no need to gurantee that \\(i\\) is in the stack if it has been visited
 
 ```c++
 void dfs(int x, int p = -1){
-    dfn[x] = low[x] = ++tim;
-    s.push(x);
-    for(pii i : g[x]){
-        if(i.ss == p) continue;
-        if(!dfn[i.ff]){
-            dfs(i.ff, i.ss);
-            low[x] = min(low[x], low[i.ff]);
-        } else low[x] = min(low[x], dfn[i.ff]);
-    }
-    if(low[x] == dfn[x]){
+	dfn[x] = low[x] = ++tim;
+	s.push(x);
+	for(pii i : g[x]){
+		if(i.ss == p) continue;
+		if(!dfn[i.ff]){
+			dfs(i.ff, i.ss);
+			low[x] = min(low[x], low[i.ff]);
+		} else low[x] = min(low[x], dfn[i.ff]);
+	}
+	if(low[x] == dfn[x]){
 		while(st.top() != x){
 			comp[st.top()] = x;
 			st.pop();
 		}
-        comp[x] = x;
+		comp[x] = x;
 		st.pop();
 	}
 }
@@ -78,20 +78,20 @@ If \\(low[i] \\ge dfn[x]\\), then \\(i\\) cannot reach anywhere above \\(x\\) us
 
 ```c++
 void dfs(int x, int p = -1){
-    dfn[x] = low[x] = ++tim;
+	dfn[x] = low[x] = ++tim;
 	int sz = 0;
-    for(pii i : g[x]){
-        if(i.ss == p) continue;
-        if(!dfn[i.ff]){
-            dfs(i.ff, i.ss);
-            low[x] = min(low[x], low[i.ff]);
+	for(pii i : g[x]){
+		if(i.ss == p) continue;
+		if(!dfn[i.ff]){
+			dfs(i.ff, i.ss);
+			low[x] = min(low[x], low[i.ff]);
 			sz++;
 			if(low[i] >= dfn[x] && p != -1){
 				//x is articulation point
 			}
-        } else low[x] = min(low[x], dfn[i.ff]);
-    }
-    if(p == -1 && sz > 1){
+		} else low[x] = min(low[x], dfn[i.ff]);
+	}
+	if(p == -1 && sz > 1){
 		//x is articulation point
 	}
 }
@@ -103,20 +103,20 @@ One easy way to check for this is to go through every edge after the fact and se
 
 ```c++
 void dfs(int x, int p = -1){
-    dfn[x] = low[x] = ++tim;
+	dfn[x] = low[x] = ++tim;
 	int sz = 0;
-    for(pii i : g[x]){
-        if(i.ss == p) continue;
-        if(!dfn[i.ff]){
-            dfs(i.ff, i.ss);
-            low[x] = min(low[x], low[i.ff]);
+	for(pii i : g[x]){
+		if(i.ss == p) continue;
+		if(!dfn[i.ff]){
+			dfs(i.ff, i.ss);
+			low[x] = min(low[x], low[i.ff]);
 			sz++;
 			if(low[i] > dfn[x]){
 				//i.ss is a bridge
 			}
-        } else low[x] = min(low[x], i.dfn[ff]);
-    }
-    if(p == -1 && sz > 1){
+		} else low[x] = min(low[x], i.dfn[ff]);
+	}
+	if(p == -1 && sz > 1){
 		//x is articulation point
 	}
 }

@@ -1,16 +1,16 @@
 title: Match (Tutorial)
 date: 12-3-2022
-tag: noip, segtree, tutorial
+tag: cf, segtree, tutorial
 
 ---
 
 ## Problem Statement
 
-[Problem Link](https://contest.xinyoudui.com/contest/6/problem/43)
+[Problem Link](https://codeforces.com/gym/104071/problem/D)
 
 ## Solution
 
-Seeing the sum over all subintervals and the fact it can be done offline immediately suggests a solution involving historic segtree. If we sweep on the right endpoint of the query and maintain a segtree storing the historic sum of all the answers for every left endpoint, that is sufficient for finding the answer. We need to somehow maintain adding to two different arrays, as well as maintaining the historic sum of their products. We can represent the base values as a vector, storing \\(\\sum m_1 \\cdot m_2\\), \\(\\sum m_1\\), \\(\\sum m_2\\), the historic of \\(\\sum m_1 \\cdot m_2\\), and the size of the range, where \\(m_1\\) is the value in the first array and \\(m_2\\) is the value in the second array. Our updates will be in the form a matrix. However, simply applying this matrix is too slow, so we can see that there are only 9 relevant values, and only consider those when transitioning. Now, to update the answer accordingly, we can use a monotonic stack for each array to only have to update a linear amount of intervals. Note that with the matrix method, we can't store the timestamp, so we have to update carefeully in a way such that each index is only considered once by the matrix operation. Also, note the specific order that the matrices much be applied in.
+Seeing the sum over all subintervals and the fact it can be done offline immediately suggests a solution involving historic segtree. If we sweep on the right endpoint of the query and maintain a segtree storing the historic sum of all the answers for every left endpoint, that is sufficient for finding the answer. We need to somehow maintain adding to two different arrays, as well as maintaining the historic sum of their products. We can represent the base values as a vector, storing \\(\\sum m_1 \\cdot m_2\\), \\(\\sum m_1\\), \\(\\sum m_2\\), the historic of \\(\\sum m_1 \\cdot m_2\\), and the size of the range, where \\(m_1\\) is the value in the first array and \\(m_2\\) is the value in the second array. Our updates will be in the form a matrix. However, simply applying this matrix is too slow, so we can see that there are only 9 relevant values, and only consider those when transitioning. Now, to update the answer accordingly, we can use a monotonic stack for each array to only have to update a linear amount of intervals. Note that with the matrix method, we can still update the segtree without changing the historic sum by just setting the historic row to its identity. Now, we can apply the matrix multiple times without worrying about changing the historic sum, and instead just create a matrix to update the historic sum and apply it after all the updates.
 
 ## Code
 
@@ -88,10 +88,12 @@ mat add(pll x){
     ret.x3 = x.ff*x.ss;
     ret.x4 = x.ff;
     ret.x5 = x.ss;
+    return ret;
+}
+
+mat enc(){
+    mat ret;
     ret.x6 = 1;
-    ret.x7 = x.ss;
-    ret.x8 = x.ff;
-    ret.x9 = x.ff*x.ss;
     return ret;
 }
 
@@ -190,59 +192,24 @@ int main(){
         {
             int cur = i;
             while(!s1.empty() && s1.top().ss < arr1[i]){
-                if(v1.size()) v1.back().ss += s1.top().ss - arr1[i];
-                else v1.pb({s1.top().ff.ss + 1, s1.top().ss - arr1[i]});
-                v1.pb({s1.top().ff.ff, arr1[i] - s1.top().ss});
+                update(s1.top().ff.ff, s1.top().ff.ss, add({arr1[i] - s1.top().ss, 0}));
                 cur = s1.top().ff.ff;
                 s1.pop();
             }
-            if(v1.empty()) v1.pb({i, 0});
             s1.push({{cur, i}, arr1[i]});
-            reverse(v1.begin(), v1.end());
         }
         vector<pii> v2;
         {
             int cur = i;
             while(!s2.empty() && s2.top().ss < arr2[i]){
-                if(v2.size()) v2.back().ss += s2.top().ss - arr2[i];
-                else v2.pb({s2.top().ff.ss + 1, s2.top().ss - arr2[i]});
-                v2.pb({s2.top().ff.ff, arr2[i] - s2.top().ss});
+                update(s2.top().ff.ff, s2.top().ff.ss, add({0, arr2[i] - s2.top().ss}));
                 cur = s2.top().ff.ff;
                 s2.pop();
             }
             if(v2.empty()) v2.pb({i, 0});
             s2.push({{cur, i}, arr2[i]});
-            reverse(v2.begin(), v2.end());
         }
-        vector<pair<int, pll>> v;
-        int a = 0, b = 0;
-        while(a < v1.size() && b < v2.size()){
-            if(v1[a].ff == v2[b].ff){
-                v.pb({v1[a].ff, {v1[a].ss, v2[b].ss}});
-                a++, b++;
-            } else if(v1[a].ff < v2[b].ff){
-                v.pb({v1[a].ff, {v1[a].ss, 0}});
-                a++;
-            } else {
-                v.pb({v2[b].ff, {0, v2[b].ss}});
-                b++;
-            }
-        }
-        while(a < v1.size()) v.pb({v1[a].ff, {v1[a].ss, 0}}), a++;
-        while(b < v2.size()) v.pb({v2[b].ff, {0, v2[b].ss}}), b++;
-        pll cur = {0, 0};
-        int prv = 1;
-        for(auto j : v){
-            if(j.ff > prv){
-                //cout << "e " << prv << " " << j.ff - 1 << " " << cur.ff << " " << cur.ss << endl;
-                update(prv, j.ff - 1, add(cur));
-            }
-            cur.ff += j.ss.ff;
-            cur.ss += j.ss.ss;
-            prv = j.ff;
-        }
-        //for(int j = 1; j <= i; j++) cout << query(j, j) << " ";
-        //cout << endl;
+        if(i > 1) update(1, i - 1, enc());
         for(pii j : que[i]) ans[j.ss] = query(j.ff, i); 
     }
     for(int i = 0; i < q; i++) cout << ans[i] << "\n";

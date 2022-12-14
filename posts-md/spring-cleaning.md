@@ -1,6 +1,6 @@
 title: Spring Cleaning (Tutorial)
 date: 11-8-2022
-tag: ceoi, codeforces, greedy, hld, segtree, tree, tutorial
+tag: ceoi, cf, greedy, hld, segtree, tree, tutorial
 
 ---
 

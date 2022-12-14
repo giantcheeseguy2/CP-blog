@@ -1,12 +1,12 @@
 title: Barrack (Tutorial)
 date: 12-3-2022
-tag: noip, dp, scc, tutorial
+tag: cf, dp, scc, tutorial
 
 ---
 
 ## Problem Statement
 
-[Problem Link](https://contest.xinyoudui.com/contest/6/problem/42)
+[Problem Link](https://codeforces.com/gym/104071/problem/C)
 
 ## Solution
 
@@ -119,8 +119,8 @@ void setIO(){
 }
 
 int main(){
-    //freopen("barrack.in", "r", stdin);
-    //freopen("barrack.out", "w", stdout);
+    freopen("barrack.in", "r", stdin);
+    freopen("barrack.out", "w", stdout);
     setIO();
     pow2[0] = 1;
     for(int i = 1; i <= 1e6; i++) pow2[i] = (ll)2*pow2[i - 1]%MOD;

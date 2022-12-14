@@ -32,18 +32,18 @@ void dfs(int x, int p = 0){
 	for(pii i : g[x]
 		if(i.ff == p) continue;
 		if(!dfn[i.ff]){
-            st.push(i.ss);
+			st.push(i.ss);
 			dfs(i.ff, x);
 			low[x] = min(low[x], low[i.ff]);
-            if(low[i.ff] >= dfn[x]){
-                while(st.top() != i.ss){
-                    //edge st.top() is in the tom block
-                    st.pop();
-                }
-                //edge st.top() is in the tom block
-                st.pop();
-                tom++;
-            }
+			if(low[i.ff] >= dfn[x]){
+				while(st.top() != i.ss){
+					//edge st.top() is in the tom block
+					st.pop();
+				}
+				//edge st.top() is in the tom block
+				st.pop();
+				tom++;
+			}
 		} else if(dfn[i.ff] < dfn[x]) low[x] = min(low[x], dfn[i.ff]), st.push(i.ss);
 	}
 }
@@ -62,16 +62,16 @@ void dfs(int x, int p = 0){
 		if(!dfn[i]){
 			dfs(i, x);
 			low[x] = min(low[x], low[i]);
-            if(low[i] >= dfn[x]){
-                g2[tom].pb(x); 
-                g2[x].pb(tom);
-                while(g2[tom].back() != i){
-                    g2[tom].pb(s.top());
-                    g2[s.top()].pb(tom);
-                    s.pop();
-                }
-                tom++;
-            }
+			if(low[i] >= dfn[x]){
+				g2[tom].pb(x); 
+				g2[x].pb(tom);
+				while(g2[tom].back() != i){
+					g2[tom].pb(s.top());
+					g2[s.top()].pb(tom);
+					s.pop();
+				}
+				tom++;
+			}
 		} else low[x] = min(low[x], dfn[i]);
 	}
 }
