@@ -1,0 +1,86 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Modert Art (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Modert Art (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">9-16-2022</div></div> <div class="tag-container"><div class="tag"><p> usaco</p></div><div class="tag"><p> brute force</p></div><div class="tag"><p> prefix sums</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="http://www.usaco.org/index.php?page=viewproblem2&amp;cpid=744">Problem Link</a></p>
+<h2>Solution</h2>
+<p>It is always optimal to make the rectangle of a single color the extremes of that color. Now, for every rectangle, we have to remove all the colors inside that are not the same from being possible starting colors. This can be done by range updating \(1\) to every element within the rectangle, then going through every point afterwards, or throug ha brute force (although not supposed to pass).</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int main(){
+    setIO();
+    freopen(&quot;art.in&quot;, &quot;r&quot;, stdin);
+    freopen(&quot;art.out&quot;, &quot;w&quot;, stdout);
+    int n;
+    cin &gt;&gt; n;
+    int mx = n*n;
+    pair&lt;pii, pii&gt; rect[mx + 1];
+    for(int i = 1; i &lt;= mx; i++) rect[i] = {{INF, INF}, {-INF, -INF}};
+    int arr[n][n];
+    bool found = false;
+    set&lt;int&gt; s;
+    for(int i = 0; i &lt; n; i++){
+        for(int j = 0; j &lt; n; j++){
+            int x;
+            cin &gt;&gt; x;
+            arr[i][j] = x;
+            found |= x &gt; 0;
+            if(x == 0) continue;
+            s.insert(x);
+            rect[x].ff.ff = min(rect[x].ff.ff, i);
+            rect[x].ff.ss = min(rect[x].ff.ss, j);
+            rect[x].ss.ff = max(rect[x].ss.ff, i);
+            rect[x].ss.ss = max(rect[x].ss.ss, j);
+        }
+    }
+    if(!found){
+        cout &lt;&lt; 0 &lt;&lt; endl;
+        return 0;
+    }
+    if(s.size() == 1){
+        cout &lt;&lt; n*n - 1 &lt;&lt; endl;
+        return 0;
+    }
+    bool vis[mx + 1];
+    memset(vis, false, sizeof(vis));
+    for(int i = 1; i &lt;= mx; i++){
+        for(int j = rect[i].ff.ff; j &lt;= rect[i].ss.ff; j++){
+            for(int k = rect[i].ff.ss; k &lt;= rect[i].ss.ss; k++){
+                if(arr[j][k] != i) vis[arr[j][k]] = true;
+            }
+        }
+    }
+    int ans = n*n;
+    for(int i = 1; i &lt;= mx; i++) ans -= vis[i];
+    cout &lt;&lt; ans &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

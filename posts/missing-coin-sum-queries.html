@@ -1,0 +1,102 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Missing Coin Sum Queries (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Missing Coin Sum Queries (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">7-25-2022</div></div> <div class="tag-container"><div class="tag"><p> cses</p></div><div class="tag"><p> persistent segtree</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://cses.fi/problemset/task/2184/">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets first try to solve a simpler version of this problem, where you are solving this with only one query. In that case you can just go from the smallest value to the largest value while maintaining the answer. If the next value is less than or equal to the answer, then u can increment the answer by that value. This works because \(1, 2, ..., ans - 1\) are all achievable, so adding a value \(a_i\) would result in \(1, 2, ..., ans + a_i - 1\) all being reachable. Now, lets solve for the full solution. Let say \(ans_i\) is the answer after the \(i\)th transition. Then, \(ans_i = ans_{i - 1} + \sum_{j=ans_{i - 1} + 1}^{a_i} cnt_j * j\). If the sum is zero, then \(ans_i\) is the final answer. Additionally, if the sum is non-zero, it is \(&gt; ans_{i - 1}\). Therefore, \(ans_i &gt; 2*ans_{i - 1}\). So the answer will transition at most \(log \sum x_i\) times. Now all we need is to maintain a range sum for every interval which can be done with persistent segtree. This gives a final complexity of \(O(log N \cdot log \sum x_i)\) per query.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+ll seg[10000000];
+int left0[10000000], right0[10000000], sz = 1;
+vector&lt;int&gt; dict;
+
+int copy(int x){
+    seg[sz] = seg[x];
+    left0[sz] = left0[x];
+    right0[sz] = right0[x];
+    return sz++;
+}
+
+void update(int x, int v, int cur, int l = 0, int r = dict.size() - 1){
+    if(l == r){
+        seg[cur] += v;
+        return;
+    }
+    int mid = (l + r)/2;
+    if(x &lt;= mid) update(x, v, left0[cur] = copy(left0[cur]), l, mid);
+    else update(x, v, right0[cur] = copy(right0[cur]), mid + 1, r);
+    seg[cur] = seg[left0[cur]] + seg[right0[cur]];
+}
+
+ll query(int l, int r, int a, int b, int ul = 0, int ur = dict.size() - 1){
+    if(l &lt;= ul &amp;&amp; ur &lt;= r) return seg[b] - seg[a];
+    if(ur &lt; l || ul &gt; r) return 0;
+    int mid = (ul + ur)/2;
+    return query(l, r, left0[a], left0[b], ul, mid) + query(l, r, right0[a], right0[b], mid + 1, ur);
+}
+
+int lb(int x){
+    return lower_bound(dict.begin(), dict.end(), x) - dict.begin();
+}
+
+int ub(int x){
+    return upper_bound(dict.begin(), dict.end(), x) - dict.begin();
+}
+
+int main(){
+    setIO();
+    int n, q;
+    cin &gt;&gt; n &gt;&gt; q;
+    int arr[n + 1];
+    for(int i = 1; i &lt;= n; i++) cin &gt;&gt; arr[i], dict.pb(arr[i]);
+    sort(dict.begin(), dict.end());
+    dict.resize(unique(dict.begin(), dict.end()) - dict.begin());
+    int rt[n + 1];
+    rt[0] = 0;
+    for(int i = 1; i &lt;= n; i++){
+        rt[i] = copy(rt[i - 1]);
+        update(lb(arr[i]), arr[i], rt[i]);
+    }
+    while(q--){
+        int l, r;
+        cin &gt;&gt; l &gt;&gt; r;
+        ll prv = 1, cur = 1;
+        while(prv &lt;= cur){
+            ll nxt = query(lb(prv), ub(cur) - 1, rt[l - 1], rt[r]);
+            prv = cur + 1;
+            cur += nxt;
+        }
+        cout &lt;&lt; cur &lt;&lt; &quot;\n&quot;;
+    }
+}
+</code></pre>
+</div> </body> </html>

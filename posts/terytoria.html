@@ -1,0 +1,74 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Terytoria (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Terytoria (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">11-23-2022</div></div> <div class="tag-container"><div class="tag"><p> loj</p></div><div class="tag"><p> hashing</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://loj.ac/p/3220">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Notice that the intersection of all \(N\) rectangles must result in some rectangles that can be combined into a bigger rectangle. Therefore, we only have to know the total \(x\) spanned by the final rectangles and the total \(y\) spanned by the final rectangles and multiply them for the answer. Looking at the four cases of the possible ways to create the rectangle, we can see that we will either cover \([x_1, x_2]\) or \([0, x_1]\) and \([x_2, X]\). This is also true for \(y_1\) and \(y_2\) as well. Over all four cases, all of the combinations of these cases are satisfied. Therefore, we can evaluate \(x\) and \(y\) independently. Our problem then becomes: given some intervals where you can either choose the interval or its complement, find the maximum size of the intersection of all the intervals. The two dfiferent states cannot cover the same cell. Thus, for each cell, in order fo it to be covered by all intervals, there is only one possible combination. We can encode this combination with xor hashing. Lets assign a random value to each interval. Every time we enter an interval, we can xor our hash with its random value. Therefore, for each cell, our hash will encode whether each interval covers it or not and we can add the cell to the unique hash that encodes its state. Discretize the cells to optimize the solution.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+int main(){
+    setIO();
+    int n, x, y;
+    cin &gt;&gt; n &gt;&gt; x &gt;&gt; y;
+    ll id[n];
+    for(int i = 0; i &lt; n; i++) id[i] = rng()%LLINF;
+    vector&lt;pll&gt; vx, vy;
+    vx.pb({0, 0});
+    vy.pb({0, 0});
+    vx.pb({x, 0});
+    vy.pb({y, 0});
+    for(int i = 0; i &lt; n; i++){
+        int x1, x2, y1, y2;
+        cin &gt;&gt; x1 &gt;&gt; y1 &gt;&gt; x2 &gt;&gt; y2;
+        vx.pb({x1, id[i]});
+        vx.pb({x2, id[i]});
+        vy.pb({y1, id[i]});
+        vy.pb({y2, id[i]});
+    }
+    ll sumx = 0, sumy = 0;
+    sort(vx.begin(), vx.end()); 
+    sort(vy.begin(), vy.end());
+    map&lt;ll, int&gt; mx, my;
+    for(int i = 1; i &lt; 2*(n + 1); i++){
+        int dx = vx[i].ff - vx[i - 1].ff, dy = vy[i].ff - vy[i - 1].ff;
+        mx[sumx] += dx, my[sumy] += dy;
+        sumx ^= vx[i].ss, sumy ^= vy[i].ss;
+    }
+    int mxx = 0, mxy = 0;
+    for(auto i : mx) mxx = max(mxx, i.ss);
+    for(auto i : my) mxy = max(mxy, i.ss);
+    cout &lt;&lt; (ll)mxx*mxy &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

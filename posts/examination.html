@@ -1,0 +1,86 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Examination (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Examination (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">11-1-2022</div></div> <div class="tag-container"><div class="tag"><p> atcoder</p></div><div class="tag"><p> ad hoc</p></div><div class="tag"><p> greedy</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://atcoder.jp/contests/arc147/tasks/arc147_e">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets first try to reduce the problem. If we do a sort of prefix sum, with \(A_i\) being a \(-1\) and \(B_i\) being a \(+1\), then in order for everyone to pass, every point in the prefix sum must be \(\ge 0\). Lets say every element in this prefix sum is part of the set of scores that will be swapped around. If a student is not in the set, his scores will not be swapped around and he is already passing. If a student is failing, he automatically must be in the set. Now, we just have to minimize the amount of passing people we have to add to the set to make everyone pass. Lets iterate through the prefix sum of the set. If it is negative at position \(x\), then we must add a student with \(B_i \le x\). If there are multiple students we should add the one with \(A_i\), since it is always more optimal to delay the \(-1\)s. This can be maintained by iterating the prefix sum and maintaining a set of values with \(B_i \le x \) sorted by \(A_i\).</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int main(){
+    setIO();
+    int n;
+    cin &gt;&gt; n;
+    vector&lt;int&gt; v1, v2;
+    int arr[n][2];
+    map&lt;int, int&gt; m;
+    int ans = 0;
+    multiset&lt;pii&gt; s1, s2;
+    for(int i = 0; i &lt; n; i++){
+        int a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        arr[i][0] = a, arr[i][1] = b;
+        if(a &lt; b){
+            ans++;
+            m[a]--, m[b]++;
+        } else {
+            s1.insert({b, a});
+        }
+        v1.pb(a), v2.pb(b);
+    }
+    sort(v1.begin(), v1.end());
+    sort(v2.begin(), v2.end());
+    for(int i = 0; i &lt; n; i++){
+        if(v1[i] &lt; v2[i]){
+            cout &lt;&lt; -1 &lt;&lt; endl;
+            return 0;
+        }
+    }
+    int sum = 0;
+    for(auto i : m){
+        sum += i.ss;
+        while(s1.size() &amp;&amp; (*s1.begin()).ff &lt;= i.ff){
+            pii x = *s1.begin();
+            s2.insert({x.ss, x.ff});
+            s1.erase(s1.find(x));
+        }
+        while(sum &lt; 0){
+            ans++;
+            sum++;
+            pii x = *s2.rbegin();
+            m[x.ff]--;
+            s2.erase(s2.find(x));
+        }
+    }
+    cout &lt;&lt; n - ans &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

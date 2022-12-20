@@ -1,0 +1,35 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Centroid Decomposition (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Centroid Decomposition (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">12-3-2022</div></div> <div class="tag-container"><div class="tag"><p> template</p></div><div class="tag"><p> centroid decomposition</p></div></div> <div class="blog"><hr />
+<h2>Goal</h2>
+<p>Divide and conquer on a tree.</p>
+<h2>Solution</h2>
+<p>If the tree was a line we could choose the midpoint of a range each time, process the range accordingly with respect to that midpoint, then split it down the midpoint. This is just divide and conquer, which gives us a complexity of \(N log N\). But how can we choose the midpoint on a tree? Turns out, this value is just the centroid (every subtree of the centroid node has at most \(\fract{N}{2}\) subtree size). Since this splits the tree in at least a half every time, it will be split into at most \(log N\) layers, and processing the centroid's subtree at each layer yields a complexity of \(N log N\). This lets us solve problems that can be solved with divide and conquer on an array. For example, we can count each path that is in a subtree of a centroid that also goes through the centroid. This obviously counts all possible paths in the tree in a faster time complexity. We just need to do some dfs for each direct child of a centroid and then somehow merge them all together.</p>
+<h2>Centroid Tree</h2>
+<p>We can actually use centroid decomposition to change the structure of the tree. Similar to segtree on an array, we will just create a tree of all the centroids with an edge between two centroids with an adjacent layer. Propertie sof a centroid tree include the fact that it is \(log N\) height, and every path that involves a node \(x\) must go through at least one of the nodes on the centroid tree between \(x\) and the root. In fact, this node will be their lca on the centroid tree. This lets us support node updates and queries involving paths in an efficient manner, since we only have to walk through all \(log N\) parents and update them as intermediate nodes.</p>
+<h2>Code</h2>
+<p>Note that to find the centroid, we just have to traverse the tree until there is no longer a subtree that has a size more than \(\frac{N}{2}\). This can be done by always going into the subtree with size more than \(\frac{N}{2}\).</p>
+<pre><code class="language-c++">int dfs(int x, int p = 0){
+    sub[x] = 1;
+	for(int i : g[x]){
+        if(i == p || vis[i]) continue;
+		sub[x] += dfs(i, x);
+	}
+	return sub[x];
+}
+
+int centroid(int x, int tar, int p = 0){
+	for(int i : g[x]){
+        if(i == p || vis[i]) continue;
+		if(sub[i]*2 &gt; tar) return centroid(i, tar, x);
+	}
+	return x;
+}
+
+void build(int x, int p = 0){
+	int c = centroid(x, dfs1(x));
+	vis[c] = true;
+    //edge between c and p in the centroid tree
+	for(int i : g[c]) if(!vis[i]) build(i, c);
+}
+</code></pre>
+</div> </body> </html>

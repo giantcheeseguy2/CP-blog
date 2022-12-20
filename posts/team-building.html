@@ -1,0 +1,67 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Team Building (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Team Building (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">9-19-2022</div></div> <div class="tag-container"><div class="tag"><p> usaco</p></div><div class="tag"><p> dp</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="http://www.usaco.org/index.php?page=viewproblem2&amp;cpid=673">Problem Link</a></p>
+<h2>Solution</h2>
+<p>The hardest part about this problem is realizing that Farmer John only wins if he wins all \(k\) rounds. After this, it becomes a trivial dp where \(dp[i][j][k] = \) we are comparing Paul's \(i\)th and John's \(j\)th cow, while having \(k\) wins. You can either take the win if cow \(j\) is better than cow \(i\), or just not take one of the two cows. However, this overcounts. By visualizing this as a 2d plane, we can see that to remove the overcount we just have to subtract \(dp[i - 1][j - 1][k]\) whenever transitioning.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 9;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+	return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+	ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int main(){
+	setIO();
+	freopen(&quot;team.in&quot;, &quot;r&quot;, stdin);
+	freopen(&quot;team.out&quot;, &quot;w&quot;, stdout);
+	int n, m, k;
+	cin &gt;&gt; n &gt;&gt; m &gt;&gt; k;
+	int a[n], b[m];
+	for(int i = 0; i &lt; n; i++) cin &gt;&gt; a[i];
+	for(int i = 0; i &lt; m; i++) cin &gt;&gt; b[i];
+	sort(a, a + n);
+	sort(b, b + m);
+	int dp[n + 1][m + 1][k + 1];
+	memset(dp, 0, sizeof(dp));
+	dp[0][0][0] = 1;
+	for(int i = 1; i &lt;= n; i++) dp[i][0][0] = 1;
+	for(int i = 1; i &lt;= m; i++) dp[0][i][0] = 1;
+	for(int i = 1; i &lt;= n; i++){
+		for(int j = 1; j &lt;= m; j++){
+			for(int x = 0; x &lt;= k; x++){
+				if(x &amp;&amp; a[i - 1] &gt; b[j - 1]) dp[i][j][x] = (dp[i][j][x] + dp[i - 1][j - 1][x - 1])%MOD;
+				dp[i][j][x] = (dp[i][j][x] + dp[i - 1][j][x])%MOD;
+				dp[i][j][x] = (dp[i][j][x] + dp[i][j - 1][x])%MOD;
+				dp[i][j][x] = (dp[i][j][x] + MOD - dp[i - 1][j - 1][x])%MOD;
+			}
+		}
+	}
+	cout &lt;&lt; dp[n][m][k] &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

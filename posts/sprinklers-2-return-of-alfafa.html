@@ -1,0 +1,86 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Sprinklers 2; Return Of Alfafa (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Sprinklers 2; Return Of Alfafa (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">10-17-2022</div></div> <div class="tag-container"><div class="tag"><p> usaco</p></div><div class="tag"><p> dp</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="http://www.usaco.org/index.php?page=viewproblem2&amp;cpid=1044">Problem Link</a></p>
+<h2>Solution</h2>
+<p>The observation to make here is that the shape of the field will always resemble a staircase, where the bottom left section is sweet corn and the top right section is alfafa. Lets say \(a\) is the number of empty cells in bottom left excluding corners, and \(b\) is the number of empty cells in the top right excluding corners. Each corner can not be taken. If we know the shape of the staircase, the number of ways to achieve the structure is \(2^a \cdot 2^b\). Let \(dp[i][j] = \) the number of ways to partition the first \(i\) rows, with the current staircase corner being at \(j\). We can either continue the corner or move it to the right.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int pow2[4000005];
+int inv = 500000004;
+
+void build(){
+    pow2[0] = 1;
+    for(int i = 1; i &lt;= 4000000; i++) pow2[i] = pow2[i - 1]*2%MOD;
+}
+
+int main(){
+    setIO();
+    freopen(&quot;sprinklers2.in&quot;, &quot;r&quot;, stdin);
+    freopen(&quot;sprinklers2.out&quot;, &quot;w&quot;, stdout);
+    build();
+    int n;
+    cin &gt;&gt; n;
+    char arr[n + 1][n + 1];
+    for(int i = 0; i &lt;= n; i++) for(int j = 0; j &lt;= n; j++) arr[i][j] = '.';
+    int tot = 0;
+    for(int i = 1; i &lt;= n; i++) for(int j = 1; j &lt;= n; j++) cin &gt;&gt; arr[i][j], tot += arr[i][j] == '.';
+    int pre[n + 2][n + 2], suf[n + 2][n + 2];
+    memset(pre, 0, sizeof(pre));
+    memset(suf, 0, sizeof(suf));
+    for(int i = 1; i &lt;= n; i++){
+        for(int j = 1; j &lt;= n; j++) pre[i][j] = pre[i][j - 1] + (arr[i][j] == '.');
+        suf[i][n] = arr[i][n] == '.';
+        for(int j = n - 1; j &gt;= 1; j--) suf[i][j] = suf[i][j + 1] + (arr[i][j] == '.');
+    }
+    //[1, j] - top right
+    //(j, n] - bottom left
+    int dp[n + 1][n + 1];
+    memset(dp, 0, sizeof(dp));
+    dp[0][0] = 2;
+    for(int i = 1; i &lt;= n; i++){
+        int sum = 0;
+        for(int j = 0; j &lt;= n; j++){
+            if(j &amp;&amp; arr[i - 1][j] == '.') (sum += (ll)dp[i - 1][j - 1]*inv%MOD) %= MOD;
+            if(j &amp;&amp; arr[i][j] == '.') (dp[i][j] += (ll)sum*inv%MOD) %= MOD;
+            (dp[i][j] += (i == 1 &amp;&amp; j == 0 ? 1 : dp[i - 1][j])) %= MOD;
+            (dp[i][j] = (ll)dp[i][j]*pow2[pre[i][j]]%MOD*pow2[suf[i][j + 1]]%MOD) %= MOD;
+        }
+    }
+    int ans = dp[n][n];
+    for(int i = 0; i &lt; n; i++){
+        if(arr[n][i + 1] == '.') (ans += (ll)dp[n][i]*inv%MOD) %= MOD;
+    }
+    cout &lt;&lt; ans &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

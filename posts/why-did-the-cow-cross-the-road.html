@@ -1,0 +1,80 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Why Did The Cow Cross The Road (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Why Did The Cow Cross The Road (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">9-1-2022</div></div> <div class="tag-container"><div class="tag"><p> usaco</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> inversions</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="http://usaco.org/index.php?page=viewproblem2&amp;cpid=720">Problem Link</a></p>
+<h2>Solution</h2>
+<p>First, notice that when rotating moving the last value to the front, only the number of intersections of the last value will change, so we only have to recompute that value. Thus, rotating can be done in constant time. Now, we just have to figure out the number of intersections in the beginning. Notice two breeds \(a_i\) and \(a_j\) intersect when \(s_{a_i} &lt; s_{a_j}\) and \(t_{a_i} &gt; t_{a_j}\), where \(s_i\) is the position of \(i\) in the first group and \(t_i\) is the position of the \(i\) in the second group. Now, the problem has been reduced to counting inversions with \(s\) and \(t\) as dimensions.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int bit[100005];
+int n;
+
+void update(int x, int v){
+    for(; x &lt;= n; x += x &amp; (-x)) bit[x] += v;
+}
+
+int query(int x, int ret = 0){
+    for(; x; x -= x &amp; (-x)) ret += bit[x];
+    return ret;
+}
+
+int main(){
+    setIO();
+    freopen(&quot;mincross.in&quot;, &quot;r&quot;, stdin);
+    freopen(&quot;mincross.out&quot;, &quot;w&quot;, stdout);
+    cin &gt;&gt; n;
+    int arr[2][n + 1];
+    for(int i = 1; i &lt;= n; i++) cin &gt;&gt; arr[0][i];
+    for(int i = 1; i &lt;= n; i++) cin &gt;&gt; arr[1][i];
+    ll ans = LLINF;
+    for(int j = 0; j &lt; 2; j++){
+        int pos[n + 1];
+        for(int i = 1; i &lt;= n; i++) pos[arr[0][i]] = i, bit[i] = 0;
+        int rev[n + 1];
+        for(int i = 1; i &lt;= n; i++) rev[pos[arr[1][i]]] = i;
+        ll cur = 0;
+        for(int i = n; i &gt;= 1; i--){
+            cur += query(rev[i]);
+            update(rev[i], 1);
+        }
+        ans = min(ans, cur);
+        for(int i = n; i &gt;= 1; i--){
+            cur -= n - pos[arr[1][i]];
+            cur += pos[arr[1][i]] - 1;
+            ans = min(ans, cur);
+        }
+        for(int i = 1; i &lt;= n; i++) swap(arr[0][i], arr[1][i]);
+    }
+    cout &lt;&lt; ans &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>
