@@ -1,0 +1,68 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Flows (Template)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Flows (Template)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">12-31-2022</div></div> <div class="tag-container"><div class="tag"><p> flows</p></div><div class="tag"><p> template</p></div></div> <div class="blog"><hr />
+<h2>Goal</h2>
+<p>We are given a directed graph, and each edge has a capacity. The sum of flow going into a node must be equal to the sum of flow leaving a node. The flow going through an edge must be at most its capacity. Find the maximum flow going into the sink node, coming from the source.</p>
+<h2>Solution</h2>
+<h3>Ford Fulkerson</h3>
+<p>For each edge \((a_i, b_i)\), lets draw an edge \((b'_i, a'_i)\) with capacity \(0\). \(flow(a_i, b_i) = -flow(b'_i, a'_i)\). Lets consider a residual graph of \(capacity - flow\). It is easy to see that if there is a positive path from the source to sink sending flow down that path will increase the answer. Thus, if we always remove a positive path from the residual graph, we will eventually converge onto the maximum flow. By adding the reverse edges, we are able to undo flow that we find to be unoptimal in the future. Since the flow only every increases, the complexity is bounded by \(O(E \cdot F)\), where \(F\) is the flow of the graph.</p>
+<h3>Dinic's</h3>
+<p>We can improve the time complexity of Ford Fulkerson by noticing that it is slow to only remove one path from the residual graph at a time. Instead, why not remove all paths of a given layer simultaneously. We construct a directed acyclic graph with a bfs on the positive residual graph. Now, we have multiple paths that we can remove. Lets run a dfs from the source, and go through the degree, sending as much flow as we can.</p>
+<h2>Code</h2>
+<h3>Dinic's</h3>
+<p>Our dfs will return the maximum flow sendable into \(x\) if given a limit of \(sum\). Note that there are some optimizations we can do, such as breaking early and removing a node from consideration after processing it. Note that we only process each edge at most once, so we can maintain a starting iterator for every node. This has \(O(E \cdot V^2)\) complexity. or \(O(E \cdot \sqrt{V})\) for graphs with unit capacity.</p>
+<pre><code class="language-c++">void addedge(int a, int b, int v){
+	g2[a].pb({b, sz});
+	g2[b].pb({a, sz + 1});
+	flow[sz] = {0, v};
+	flow[sz + 1] = {0, 0};
+	sz += 2;
+}
+
+bool bfs(){
+	for(int i = s; i &lt;= t; i++) depth[i] = st[i] = 0;
+	queue&lt;int&gt; q;
+	q.push(s);
+	depth[s] = 1;
+	while(!q.empty()){
+		int x = q.front();
+		q.pop();
+		if(x == t) return true;
+		for(int j = 0; j &lt; g2[x].size(); j++){
+			pii i = g2[x][j];
+			if(!depth[i.ff] &amp;&amp; flow[i.ss].ff &lt; flow[i.ss].ss){
+				depth[i.ff] = depth[x] + 1;
+				q.push(i.ff);
+			}
+		}
+	}
+	return false;
+}
+
+int dfs(int x = s, int sum = INF){
+	if(x == t || sum == 0) return sum;
+	int ret = 0;
+	for(; st[x] &lt; g2[x].size(); st[x]++){
+		pii i = g2[x][st[x]];
+		if(flow[i.ss].ff &lt; flow[i.ss].ss &amp;&amp; depth[x] + 1 == depth[i.ff]){
+			int sub = dfs(i.ff, min(sum, flow[i.ss].ss - flow[i.ss].ff));
+			if(sub == 0) continue;
+			flow[i.ss].ff += sub;
+			flow[i.ss ^ 1].ff -= sub;
+			ret += sub;
+			sum -= sub;
+		}
+		if(!sum) break;
+	}
+	if(!ret) depth[x] = INF;
+	return ret;
+}
+</code></pre>
+<p>Retrieve the flow</p>
+<pre><code class="language-c++">int sum = 0;
+while(bfs()) while(int x = dfs()) sum += x;
+</code></pre>
+<h2>Notes</h2>
+<ul>
+<li>Min Cut (minimum cost to disconnect the source and sink by removing edges, with a cost being its capacity) = Max Flow (useful for some problems)</li>
+</ul>
+</div> </body> </html>

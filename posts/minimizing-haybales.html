@@ -1,0 +1,115 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Minimizing Haybales (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Minimizing Haybales (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">12-13-2022</div></div> <div class="tag-container"><div class="tag"><p> usaco</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> graph</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="http://usaco.org/index.php?page=viewproblem2&amp;cpid=1188">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets find a brute force solution first. Essentially, we want to choose the smallest value, \(arr[i]\) that no remaining values before \(i\) that are outside of the range \([arr[i] - k, arr[i] + k]\). Once we choose this value, we can just remove it and continue. This is actually similar to finding a topological ordering of a graph. If we draw an edge between \(i\) and all the indeces after \(i\) outside of the range \([arr[i] - k, arr[i] + k]\), it is just the lexicographically smallest topological order of the graph. This can be found using a priority queue. However, there are too many edges. Since our edges are only to a specific range, if for every \(i\), we store its indegree, we can actually update the indegrees fast. We just have to walk on the segtree to remove all \(0\)s and add them into the priority queue.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt;   pll;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int n, k;
+int mn[400005], tag[400005];
+vector&lt;pii&gt; dict;
+
+void push_down(int x){
+    if(!tag[x]) return;
+    mn[x] = INF;
+    for(int i = x*2 + 1; i &lt;= x*2 + 2; i++){
+        mn[i] += tag[x];
+        tag[i] += tag[x];
+    }
+    tag[x] = 0;
+}
+
+void update(int l, int r, int v, int ul = 0, int ur = dict.size() - 1, int cur = 0){
+    if(l &gt; r) return;
+    if(l &lt;= ul &amp;&amp; ur &lt;= r){
+        mn[cur] += v;
+        tag[cur] += v;
+        return;
+    }
+    push_down(cur);
+    int mid = (ul + ur)/2;
+    if(l &lt;= mid) update(l, r, v, ul, mid, cur*2 + 1);
+    if(r &gt; mid) update(l, r, v, mid + 1, ur, cur*2 + 2);
+    mn[cur] = min(mn[cur*2 + 1], mn[cur*2 + 2]);
+}
+
+int ind(pii x){
+    return lower_bound(dict.begin(), dict.end(), x) - dict.begin();
+}
+
+priority_queue&lt;pii, vector&lt;pii&gt;, greater&lt;pii&gt;&gt; q;
+
+int arr[100005];
+
+void prune(int l = 0, int r = dict.size() - 1, int cur = 0){
+    if(mn[cur]) return;
+    if(l == r){
+        q.push(dict[l]);
+        mn[cur] = INF;
+        return;
+    }
+    push_down(cur);
+    int mid = (l + r)/2;
+    prune(l, mid, cur*2 + 1);
+    prune(mid + 1, r, cur*2 + 2);
+    mn[cur] = min(mn[cur*2 + 1], mn[cur*2 + 2]);
+}
+
+int bit[100005];
+
+void upd(int x, int v){
+    for(x++; x &lt;= n; x += x &amp; (-x)) bit[x] += v;
+}
+
+int que(int x, int ret = 0){
+    for(x++; x; x -= x &amp; (-x)) ret += bit[x];
+    return ret;
+}
+
+int main(){
+    setIO();
+    cin &gt;&gt; n &gt;&gt; k;
+    for(int i = 0; i &lt; n; i++){
+        cin &gt;&gt; arr[i];
+        dict.pb({arr[i], i});
+    }
+    sort(dict.begin(), dict.end());
+    for(int i = 0; i &lt; n; i++){
+        int cur = ind({arr[i], i});
+        update(cur, cur, que(ind({arr[i] - k, -1}) - 1) + i - que(ind({arr[i] + k, INF}) - 1));
+        upd(cur, 1);
+    }
+    prune();
+    while(!q.empty()){
+        pii x = q.top();
+        cout &lt;&lt; x.ff &lt;&lt; endl;
+        q.pop();
+        update(0, ind({x.ff - k, -1}) - 1, -1);
+        update(ind({x.ff + k, INF}), dict.size() - 1, -1);
+        prune();
+    } 
+}
+</code></pre>
+</div> </body> </html>
