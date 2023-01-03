@@ -10,7 +10,7 @@ tag: cf, segtree, tutorial
 
 ## Solution
 
-Since the answer is multipled by a different constant for every bit, it is intuitive that we should fix a bit and find the maximum pair that carries over that bit. Now how can we maintain this? For the subtasks it is possible to use some sum over subsets and recompute every update, but this clearly cannot be scaled to larger \\(N\\). Instead, lets think about when two pairs of numbers carry over bit \\(x\\). Turns out that this is when \\(c_i%2^x + c_j%2^x \\ge 2^x\\). Moving this around a bit, we get that \\(c_i%2^x \\ge 2^x - c_j%2^x\\). Finding the maximum over all pairs in this manner can be done with a segtree. Thus, we only need to maintain a segtree for each bit. 
+Since the answer is multipled by a different constant for every bit, it is intuitive that we should fix a bit and find the maximum pair that carries over that bit. Now how can we maintain this? For the subtasks it is possible to use some sum over subsets and recompute every update, but this clearly cannot be scaled to larger \\(N\\). Instead, lets think about when two pairs of numbers carry over bit \\(x\\). Turns out that this is when \\(c_i\\%2^x + c_j\\%2^x \\ge 2^x\\). Moving this around a bit, we get that \\(c_i\\%2^x \\ge 2^x - c_j\\%2^x\\). Finding the maximum over all pairs in this manner can be done with a segtree. Thus, we only need to maintain a segtree for each bit. 
 
 ## Code
 

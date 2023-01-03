@@ -10,7 +10,7 @@ Divide and conquer on a tree.
 
 ## Solution
 
-If the tree was a line we could choose the midpoint of a range each time, process the range accordingly with respect to that midpoint, then split it down the midpoint. This is just divide and conquer, which gives us a complexity of \\(N log N\\). But how can we choose the midpoint on a tree? Turns out, this value is just the centroid (every subtree of the centroid node has at most \\(\\fract{N}{2}\\) subtree size). Since this splits the tree in at least a half every time, it will be split into at most \\(log N\\) layers, and processing the centroid's subtree at each layer yields a complexity of \\(N log N\\). This lets us solve problems that can be solved with divide and conquer on an array. For example, we can count each path that is in a subtree of a centroid that also goes through the centroid. This obviously counts all possible paths in the tree in a faster time complexity. We just need to do some dfs for each direct child of a centroid and then somehow merge them all together.
+If the tree was a line we could choose the midpoint of a range each time, process the range accordingly with respect to that midpoint, then split it down the midpoint. This is just divide and conquer, which gives us a complexity of \\(N log N\\). But how can we choose the midpoint on a tree? Turns out, this value is just the centroid (every subtree of the centroid node has at most \\(\\frac{N}{2}\\) subtree size). Since this splits the tree in at least a half every time, it will be split into at most \\(log N\\) layers, and processing the centroid's subtree at each layer yields a complexity of \\(N log N\\). This lets us solve problems that can be solved with divide and conquer on an array. For example, we can count each path that is in a subtree of a centroid that also goes through the centroid. This obviously counts all possible paths in the tree in a faster time complexity. We just need to do some dfs for each direct child of a centroid and then somehow merge them all together.
 
 ## Centroid Tree
 
@@ -22,9 +22,9 @@ Note that to find the centroid, we just have to traverse the tree until there is
 
 ```c++
 int dfs(int x, int p = 0){
-    sub[x] = 1;
+	sub[x] = 1;
 	for(int i : g[x]){
-        if(i == p || vis[i]) continue;
+		if(i == p || vis[i]) continue;
 		sub[x] += dfs(i, x);
 	}
 	return sub[x];
@@ -32,7 +32,7 @@ int dfs(int x, int p = 0){
 
 int centroid(int x, int tar, int p = 0){
 	for(int i : g[x]){
-        if(i == p || vis[i]) continue;
+		if(i == p || vis[i]) continue;
 		if(sub[i]*2 > tar) return centroid(i, tar, x);
 	}
 	return x;
@@ -41,7 +41,7 @@ int centroid(int x, int tar, int p = 0){
 void build(int x, int p = 0){
 	int c = centroid(x, dfs1(x));
 	vis[c] = true;
-    //edge between c and p in the centroid tree
+	//edge between c and p in the centroid tree
 	for(int i : g[c]) if(!vis[i]) build(i, c);
 }
 ```

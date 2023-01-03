@@ -1,0 +1,79 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Sleeping Cows (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Sleeping Cows (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">1-3-2023</div></div> <div class="tag-container"><div class="tag"><p> usaco</p></div><div class="tag"><p> dp</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="http://usaco.org/index.php?page=viewproblem2&amp;cpid=1068">Problem Link</a></p>
+<h2>Solution</h2>
+<p>For each cow, it can fit into any barn larger than it, and vice versa. Thus, if we store the cows and barns together sorted by size, we can count the number of all matchings (not neccesarily maximal) with a dp. \(dp[i][j] = \) the number of ways to match using the first \(i\) elements with \(j\) active cows. If we choose to take a cow, then we increase \(j\). If we choose to take a barn, then we decrease \(j\). Now how can we gurantee that this matching is maximal? A matching is maximal if the smallest cow that isn't chosen is larger than the largest barn that isn't chosen. So lets fix the smallest cow (note that multiple cows of the same size should be distinct) and compute the dp accordingly. Everything cow smaller than the fixed cow must be chosen, and every barn greater than the fixed cow must be chosen. This yields a \(O(N^3)\) solution. To optimize this, notice that the transitions before the fixed cow are all the same, and the transitions after the fixed cow are all the same. Thus, we can use an extra state in our dp and compute the fixed cow on the fly.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int main(){
+    setIO();
+    int n;
+    cin &gt;&gt; n;
+    vector&lt;pii&gt; v;
+    for(int i = 0; i &lt; n; i++){
+        int x;
+        cin &gt;&gt; x;
+        v.pb({x, 0});
+    }
+    for(int i = 0; i &lt; n; i++){
+        int x;
+        cin &gt;&gt; x;
+        v.pb({x, 1});
+    }
+    sort(v.begin(), v.end());
+    int ans = 0;
+    int dp[v.size() + 1][n + 1][2];
+    memset(dp, 0, sizeof(dp));
+    dp[0][0][0] = 1;
+    for(int i = 1; i &lt;= v.size(); i++){
+        for(int k = 0; k &lt;= n; k++){
+            if(v[i - 1].ss){
+                (dp[i][k][0] += dp[i - 1][k][0]) %= MOD;
+                if(k &lt; n){
+                    (dp[i][k][0] += (ll)dp[i - 1][k + 1][0]*(k + 1)%MOD) %= MOD;
+                    (dp[i][k][1] += (ll)dp[i - 1][k + 1][1]*(k + 1)%MOD) %= MOD;
+                }
+            } else {
+                (dp[i][k][1] += dp[i - 1][k][1]) %= MOD;
+                (dp[i][k][1] += dp[i - 1][k][0]) %= MOD;
+                if(k){
+                    (dp[i][k][1] += dp[i - 1][k - 1][1]) %= MOD;
+                    (dp[i][k][0] += dp[i - 1][k - 1][0]) %= MOD;
+                }
+            }
+        }
+    }
+    cout &lt;&lt; (dp[v.size()][0][0] + dp[v.size()][0][1])%MOD &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>
