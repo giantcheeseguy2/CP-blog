@@ -42,7 +42,7 @@ fs.readdir(read, (err, files) => {
             let val = date.split('-');
             if(val[0].length == 1) val[0] = '0' + val[0];
             if(val[1].length == 1) val[1] = '0' + val[1];
-            fs.writeFile(write2 + val[0] + '-' + val[1] + '-' + val[2] + '-' + path.parse(file).name + '.json', JSON.stringify(id), err => {
+            fs.writeFile(write2 + val[2] + '-' + val[0] + '-' + val[1] + '-' + path.parse(file).name + '.json', JSON.stringify(id), err => {
                 if(err) throw err;
             });
         });
