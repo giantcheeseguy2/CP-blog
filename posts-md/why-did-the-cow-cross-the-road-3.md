@@ -1,4 +1,4 @@
-title: Why did the cow cross the road 3 (Tutorial)
+title: Why Did The Cow Cross The Road 3 (Tutorial)
 date: 10-23-2022
 tag: usaco, segtree, tutorial
 
@@ -10,7 +10,7 @@ tag: usaco, segtree, tutorial
 
 ## Solution
 
-Lets try to count the number of friendly pairs, then subtract it from the number of unfriendly. Checking the pairs can be reduced to counting inversions, so we want to count inversions of all cows with an id within \\(K\\). Its the same problem as checking the number of inversions of an array while supporting toggling some values on and some values off. Doing this with as well as a PIE lets you check how many inversions cow \\(i\\) will create if added to a group containing \\([i - k, i - 1]\\).
+Lets try to count the number of friendly pairs, then subtract it from the number of unfriendly. Checking the pairs can be reduced to counting inversions, so we want to count inversions of all cows with an id within \\(K\\). Its the same problem as checking the number of inversions of an array while supporting toggling some values on and some values off. Doing this with as well as a PIE lets you check how many inversions cow \\(i\\) will create if added to a group containing \\([i - k, i - 1]\\). To count inversions while supporting togglings, we need some sort of 2d structure that supports point add and range query. 2d segtree can do tihs, but it is too slow, so cdq must be used.
 
 ## Code
 

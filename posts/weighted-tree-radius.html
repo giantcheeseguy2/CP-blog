@@ -1,0 +1,279 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Weighted Tree Radius (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Weighted Tree Radius (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">1-29-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> centroid decomposition</p></div><div class="tag"><p>  tree</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> hld</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1783/problem/G">Problem Link</a></p>
+<h2>Solution</h2>
+<p>It may seem that this is a centroid decomposition problem, but updating all nodes somehow seems hard, so other ideas may be better to consider. Since we are dealing with longest paths on a tree, it may be helpful to somehow use the diameter of the tree. However, there can't be a tree diameter when only one endpoint is weighted, thus lets weight both the endpoints of a path when considering the diameter. This can be done by adding a dummy node to every node with its weight. Now, lets see how this ties into our problem. As a property of diameter, the maximum distance from node \(x\) to any node is always to either one of the diameter's endpoints. If all the weights were \(1\), then our answer will be \(\frac{w + 1}{2}\), where \(w\) is the length of the diameter, since we choosing the midpoint on the diameter would always be optimal. It seems intuitive that this idea would apply to weighted nodes as well, since everything except the endpoints of the diameter will have weight \(1\), allowing us to adjust the midpoint until we get our target value. The only case that this doesnt cover is if the answer path is just the path to itself, but we can account for this using a set. Thus, our task now is just to maintain dynamic diameter, which can be done with a gbst.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#pragma GCC optimize(&quot;O3&quot;)
+#pragma GCC optimization (&quot;unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,tune=native&quot;)
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+struct matrix {
+
+    array&lt;array&lt;ll, 3&gt;, 3&gt; mat;
+
+    array&lt;ll, 3&gt; &amp;operator[](int x){
+        return mat[x];
+    }
+
+    const array&lt;ll, 3&gt; &amp;operator[](int x) const {
+        return mat[x];
+    }
+
+    matrix(){
+        for(int i = 0; i &lt; 3; i++) for(int j = 0; j &lt; 3; j++) mat[i][j] = 0;
+    }
+
+    matrix operator*(const matrix &amp;x){
+        matrix ret;
+        for(int i = 0; i &lt; 3; i++) for(int j = 0; j &lt; 3; j++) ret[i][j] = -LLINF;
+        for(int i = 0; i &lt; 3; i++){
+            for(int k = 0; k &lt; 3; k++){
+                for(int j = 0; j &lt; 3; j++){
+                    ret[i][j] = max(ret[i][j], mat[i][k] + x[k][j]);
+                }
+            }
+        }
+        return ret;
+    }
+
+    matrix &amp;operator*=(const matrix &amp;x){
+        (*this) = (*this) * x;
+        return *this;
+    }
+};
+
+vector&lt;pii&gt; g[400005];
+int sub[400005];
+int head[400005];
+int par[400005];
+int tim = 0;
+vector&lt;int&gt; chain[400005];
+int weight[400005];
+
+void dfs1(int x, int p){
+    sub[x] = 1;
+    pii tar = {-1, -1};
+    for(pii i : g[x]) if(i.ff == p) tar = i;
+    if(tar.ff != -1) g[x].erase(find(g[x].begin(), g[x].end(), tar));
+    for(pii &amp;i : g[x]){
+        dfs1(i.ff, x);
+        sub[x] += sub[i.ff];
+        if(sub[i.ff] &gt; sub[g[x][0].ff]) swap(i, g[x][0]);
+    }
+}
+
+int in[400005], out[400005];
+int dir[400005];
+
+void dfs2(int x, int p){
+    chain[head[x]].pb(x);
+    par[x] = p;
+    weight[x] = 1;
+    in[x] = tim++;
+    for(pii i : g[x]){
+        dir[i.ss] = i.ff;
+        head[i.ff] = (i.ff == g[x][0].ff ? head[x] : i.ff);
+        dfs2(i.ff, x);
+        if(i.ff != g[x][0].ff) weight[x] += sub[i.ff];
+    }
+    out[x] = tim - 1;
+}
+
+matrix dp[400005];
+matrix cum[400005];
+int rt[400005];
+int left0[400005], right0[400005], ppar[400005];
+ll e[400005];
+
+int dnq(int l, int r, int p, vector&lt;int&gt; &amp;v){
+    if(l &gt; r) return 0;
+    int sum = 0;
+    for(int i = l; i &lt;= r; i++) sum += weight[v[i]];
+    int cur = 0;
+    int mid = -1;
+    for(int i = l; i &lt;= r; i++){
+        cur += weight[v[i]];
+        if(cur &gt;= sum/2){
+            mid = i;
+            break;
+        }
+    }
+    if(p == -1) ppar[v[mid]] = v[mid];
+    else ppar[v[mid]] = p;
+    left0[v[mid]] = dnq(l, mid - 1, v[mid], v);
+    right0[v[mid]] = dnq(mid + 1, r, v[mid], v);
+    return v[mid];
+}
+
+void merge(int x){
+    if(right0[x] &amp;&amp; left0[x]){
+        cum[x] = cum[right0[x]]*dp[x]*cum[left0[x]];
+    } else if(right0[x] &amp;&amp; !left0[x]){
+        cum[x] = cum[right0[x]]*dp[x];
+    } else if(left0[x] &amp;&amp; !right0[x]){
+        cum[x] = dp[x]*cum[left0[x]];
+    } else {
+        cum[x] = dp[x];
+    }
+}
+
+void pull(int x){
+    while(x != rt[x]){
+        merge(x); 
+        x = ppar[x];
+    }
+    merge(x);
+}
+
+ll mx[400005], dep[400005];
+int epar[400005];
+
+ll dfs3(int x, int p){
+    vector&lt;ll&gt; v;
+    v.pb(0), v.pb(0);
+    mx[x] = 0;
+    for(pii i : g[x]){
+        v.pb(dfs3(i.ff, x) + e[i.ss]);
+        epar[i.ff] = i.ss;
+        mx[x] = max(mx[x], mx[i.ff]);
+    }
+    sort(v.rbegin(), v.rend());
+    mx[x] = max(mx[x], v[0] + v[1]);
+    dep[x] = v[0];
+    return v[0];
+}
+
+multiset&lt;ll&gt; deg[400005];
+multiset&lt;ll&gt; ans[400005];
+
+void rebuild(int i){
+    dp[i][0][0] = (g[i].size() ? e[g[i][0].ss] : 0);
+    dp[i][1][0] = -LLINF;
+    dp[i][2][0] = *deg[i].rbegin();
+    dp[i][0][1] = *deg[i].rbegin() + (g[i].size() ? e[g[i][0].ss] : 0); 
+    dp[i][1][1] = 0;
+    dp[i][2][1] = max(*prev(deg[i].end()) + *prev(deg[i].end(), 2), *ans[i].rbegin());
+    dp[i][0][2] = -LLINF;
+    dp[i][1][2] = -LLINF;
+    dp[i][2][2] = 0;
+}
+
+ll eval(matrix &amp;x, int ind){
+    return max({x[0][ind], x[1][ind], x[2][ind]});
+}
+
+void rem(int x){
+    while(head[x] != 1){
+        if(x == head[x]){
+            deg[par[x]].erase(deg[par[x]].find(max((ll)0, eval(cum[rt[x]], 0) + e[epar[x]])));
+            ans[par[x]].erase(ans[par[x]].find(eval(cum[rt[x]], 1)));
+            x = par[x];
+        }
+        x = head[x];
+    }
+}
+
+void add(int x){
+    while(head[x] != 1){
+        if(x == head[x]){
+            deg[par[x]].insert(max((ll)0, eval(cum[rt[x]], 0) + e[epar[x]]));
+            ans[par[x]].insert(eval(cum[rt[x]], 1));
+            rebuild(par[x]);
+            pull(par[x]);
+            x = par[x];
+        }
+        x = head[x];
+    }
+}
+
+int main(){
+    setIO();
+    int n;
+    cin &gt;&gt; n;
+    multiset&lt;ll&gt; s;
+    for(int i = 0; i &lt; n; i++){
+        cin &gt;&gt; e[i];
+        s.insert(e[i]);
+        g[i + 1].pb({n + i + 1, i});
+        g[n + i + 1].pb({i + 1, i});
+    }
+    for(int i = n; i &lt; 2*n - 1; i++){
+        int a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        e[i] = 1;
+        g[a].pb({b, i});
+        g[b].pb({a, i});
+    }
+    n *= 2;
+    dfs1(1, 1);
+    head[1] = 1;
+    dfs2(1, 1);
+    dfs3(1, 1);
+    for(int i = 1; i &lt;= n; i++){
+        if(chain[i].size()){
+            int p = dnq(0, chain[i].size() - 1, -1, chain[i]);
+            for(int j : chain[i]) rt[j] = p;
+        }
+    }
+    for(int i = 1; i &lt;= n; i++){
+        deg[i].insert(0);
+        deg[i].insert(0);
+        ans[i].insert(0);
+        for(pii j : g[i]){
+            if(head[j.ff] == head[i]) continue;
+            deg[i].insert(max((ll)0, dep[j.ff] + e[j.ss]));
+            ans[i].insert(mx[j.ff]);
+        }
+        rebuild(i); 
+        pull(i);
+    } 
+    int q;
+    cin &gt;&gt; q;
+    while(q--){
+        ll d, v;
+        cin &gt;&gt; d &gt;&gt; v;
+        d--;
+        int x = dir[d];
+        rem(x);
+        s.erase(s.find(e[d]));
+        e[d] = v;
+        s.insert(e[d]);
+        if(head[x] != x) rebuild(par[x]), pull(par[x]);
+        add(x);
+        cout &lt;&lt; max(*s.rbegin(), ceil0(eval(cum[rt[1]], 1), 2)) &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>

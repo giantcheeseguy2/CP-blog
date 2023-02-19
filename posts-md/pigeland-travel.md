@@ -1,4 +1,4 @@
-title: Pigeland (Tutorial)
+title: Pigeland Travel (Tutorial)
 date: 1-3-2023
 tag: cf, tree, hld, binary lifting, tutorial
 

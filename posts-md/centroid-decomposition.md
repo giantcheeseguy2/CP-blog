@@ -21,11 +21,11 @@ We can actually use centroid decomposition to change the structure of the tree. 
 Note that to find the centroid, we just have to traverse the tree until there is no longer a subtree that has a size more than \\(\\frac{N}{2}\\). This can be done by always going into the subtree with size more than \\(\\frac{N}{2}\\).
 
 ```c++
-int dfs(int x, int p = 0){
+int dfs1(int x, int p = 0){
 	sub[x] = 1;
 	for(int i : g[x]){
 		if(i == p || vis[i]) continue;
-		sub[x] += dfs(i, x);
+		sub[x] += dfs1(i, x);
 	}
 	return sub[x];
 }

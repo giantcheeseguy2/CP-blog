@@ -1,6 +1,6 @@
 title: Painting (Tutorial)
 date: 1-3-2023
-tag: tutorial
+tag: cf, geometry, tree, binary lifting, tutorial
 
 ---
 
