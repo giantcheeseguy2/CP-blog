@@ -18,6 +18,8 @@ The bounds seem a bit high for a flows solution, but it seems like a min cost ma
 
 Aliens Trick:
 
+Disclaimer, this code is actually wrong. Refer to "Halve Or Subtract" for the correct solution.
+
 Lets write out a dp. \\(dp[i][j][k] = \\) the answer at \\(i\\) while having already thrown \\(j\\) balls of type \\(a\\) and \\(k\\) balls of type \\(b\\). Using aliens trick, we can get rid of the \\(k\\) state, and solve for \\(dp[i][j] = \\) the answer at \\(i\\) while having already throwin \\(j\\) balls of type \\(a\\), with no restriction on balls of type \\(b\\). We can use aliens trick again to similarly get rid of the \\(j\\) state when finding \\(dp[i][j]\\). This gives us a \\(O(N log^2 N)\\) solution. 
 
 ## Code

@@ -1,0 +1,118 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Sleeping In Class (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Sleeping In Class (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">3-4-2023</div></div> <div class="tag-container"><div class="tag"><p> usaco</p></div><div class="tag"><p> sos</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="http://usaco.org/index.php?page=viewproblem2&amp;cpid=1213">Problem Link</a></p>
+<h2>Solution</h2>
+<p>First, we should figure out a way to optimally solve the array for a single \(x\). We can think about greedily merging from left to right, and always splitting the group once it is \(\ge x\). Actually, this is equivalent to greedily grouping together as many groups as possible such that their sum is a multiple of \(x\). In other words, we are counting the number of prefixes that are divisible by \(x\), since this will always be the smallest amount of groups that we can create. To avoid wasting queries, we can see that we only have to answer a query if the total sum is divisible by \(x\). This restricts our relevant queries to the number of divisors of the sum, which is actually only \(10^6\). Now, for each divisor, we have to somehow count how many prefixes are a multiple of it. Maybe we can precompute these values and somehow use reuse old information to save time. Actually, if a prefix is a multiple of a divisor, it will be a multiple of the divisor's divisors as well. Thus, if we know all the original factors which will form all possible divisors, we can count the number of prefixes that work for it using sum over subsets. Note that our base will vary based on the number of times each divisor occurs, since using a bitmask is too slow. To factor the sum, we can naively factor out all factors \(\le 10^6\). This means that there are only at most two factors remaining. We can find these over the course of the queries, checking if each query is one of those factors. If a query consists of one of the factors, we can easily find the other, and if a query consists of both, then we don't need to find the extra factors, since there will be no subset needed for them.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int inf = 1e9;
+const ll llinf = 1e18;
+const int mod = 1e9 + 7;
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int main(){
+    setIO();
+    int n;
+    cin &gt;&gt; n;
+    ll sum = 0;
+    ll arr[n + 1];
+    for(int i = 1; i &lt;= n; i++){
+        cin &gt;&gt; arr[i];
+        sum += arr[i];
+    }
+    for(int i = 2; i &lt;= n; i++) arr[i] += arr[i - 1];
+    ll mx = arr[n];
+    map&lt;ll, int&gt; m;
+    for(int i = 2; i &lt;= 1000000; i++){
+        while(sum%i == 0){
+            m[i]++;
+            sum /= i;
+        }
+    }
+    int q;
+    cin &gt;&gt; q;
+    vector&lt;ll&gt; que;
+    while(q--){
+        ll x;
+        cin &gt;&gt; x;
+        que.pb(x);
+        if(1 &lt; x &amp;&amp; x &lt; sum &amp;&amp; sum%x == 0){
+            m[x]++;
+            m[sum/x]++;
+            sum = 1;
+        }
+    }
+    if(sum != 1) m[sum]++;
+    vector&lt;pll&gt; v;
+    for(auto i : m) v.pb(i);
+    int ind[v.size()];
+    int lim = 1;
+    for(int i = 0; i &lt; v.size(); i++){
+        ind[i] = lim;
+        lim *= v[i].ss + 1;
+    }
+    int sos[lim];
+    memset(sos, 0, sizeof(sos));
+    for(int i = 1; i &lt;= n; i++){ 
+        int mask = 0;
+        for(int j = 0; j &lt; v.size(); j++){
+            for(int k = 0; k &lt; v[j].ss; k++){
+                if(arr[i]%v[j].ff == 0){
+                    arr[i] /= v[j].ff;
+                    mask += ind[j];
+                } else {
+                    break;
+                }
+            }
+        }
+        sos[mask]++;
+    }
+    for(int i = 0; i &lt; v.size(); i++){
+        for(int j = lim - 1; j &gt;= 0; j--){
+            int cur = (j/ind[i])%(v[i].ss + 1);
+            if(cur &lt; v[i].ss){
+                sos[j] += sos[j + ind[i]];
+            }
+        }
+    }
+    for(ll i : que){
+        if(mx%i){
+            cout &lt;&lt; -1 &lt;&lt; endl;
+            continue;
+        }
+        ll ans = n + mx/i;
+        int mask = 0;
+        for(int j = 0; j &lt; v.size(); j++){
+            for(int k = 0; k &lt; v[j].ss; k++){
+                if(i%v[j].ff == 0){
+                    i /= v[j].ff;
+                    mask += ind[j];
+                } else {
+                    break;
+                }
+            }
+        }
+        cout &lt;&lt; ans - 2*sos[mask] &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>

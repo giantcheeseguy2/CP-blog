@@ -1,6 +1,6 @@
 title: Weighted Tree Radius (Tutorial)
 date: 1-29-2023
-tag: cf, centroid decomposition,  tree, segtree, hld, tutorial
+tag: cf, centroid decomposition, tree, segtree, hld, tutorial
 
 ---
 

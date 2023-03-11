@@ -1,0 +1,401 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Gasoline (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Gasoline (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">3-9-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> binary lifting</p></div><div class="tag"><p> dsu</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1801/problem/E">Problem Link</a></p>
+<h2>Solution</h2>
+<p>The operation of enforcing two nodes to be the same value is similar to a dsu. If we can somehow brute force the operation by only merging two nodes when they are in seperate components, the solution will run in time. The only issue is skipping all the merges that are already in the same component. Doing operations on a path are hard, but we can actually reduce the operation to only be on chains by breaking up the two paths into chains based on distance to lca. Now we have two types of chains, some going upwards and some going downwards. We want to enforce chains of same length to be the same based on their directions. This can be done using a trick using binary lifting. If we enforce two chains of size \(2^x\) to be the same, we can propagate down and enforce the chains inside of size \(2^{x - 1}\) to be the same. If we quit the propagation if the two chains are in the same component, and mege the dsu and continue propagating otherwise, then only results in \(N log N\) merges. By having two seperate binary lifting components for downwards and upwards chains, we can solve the problem with just some casework on the paths. Note that some optimizations such as rank based dsu must be used to not tle.</p>
+<h2>Code</h2>
+<p>Note: using vectors for \(g\) instead of arrays causes tle.</p>
+<pre><code class="language-c++">#pragma GCC optimize(&quot;Ofast&quot;)
+#pragma GCC optimization (&quot;unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,tune=native&quot;)
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+template&lt;class mod&gt;
+struct Modular {
+
+    using T = typename mod::type;
+    using C = typename mod::cast;
+
+    template&lt;class U&gt;
+    static T fpow(T a, U b){
+        T ret = 1;
+        while(b){
+            if(b%2 == 1) ret = (C)ret*a%mod::mod;
+            a = (C)a*a%mod::mod;
+            b /= 2;
+        }
+        return ret;
+    }
+
+    T val;
+
+    Modular(){
+        val = 0;
+    }
+
+    template&lt;class U&gt;
+    Modular(const U &amp;x){
+        val = x%mod::mod;
+        if(val &lt; 0) val += mod::mod;
+    }
+
+    const T Mod() const { return mod::mod; }
+
+    const T &amp;operator()() const { return val; }
+
+    template&lt;class U&gt;
+    explicit operator U() const { return static_cast&lt;U&gt;(val); } 
+
+    Modular operator-(){ return Modular&lt;mod&gt;(-val); }
+
+    Modular &amp;operator+=(const Modular &amp;x){
+        val = (val + x.val)%mod::mod;
+        return *this;
+    }
+
+    Modular &amp;operator-=(const Modular &amp;x){
+        val = (val - x.val + mod::mod)%mod::mod;
+        return *this;
+    }
+
+    Modular &amp;operator*=(const Modular &amp;x){
+        val = (C)val*x.val%mod::mod;
+        return *this;
+    }
+
+    Modular &amp;operator/=(const Modular &amp;x){
+        val = (C)val*fpow(x.val, mod::mod - 2)%mod::mod;
+        return *this;
+    }
+
+    Modular &amp;operator%=(const Modular &amp;x){
+        return *this;
+    }
+
+    template&lt;class U&gt;
+    Modular &amp;operator^=(const U &amp;x){
+        assert((&quot;be careful when raising to a modded power&quot;, typeid(x) != typeid(*this)));
+        val = fpow(val, x);
+        return *this;
+    }
+
+    Modular &amp;operator++(){ return *this += 1; }
+
+    Modular &amp;operator--(){ return *this -= 1; }
+
+    Modular operator++(int){
+        Modular ret = *this;
+        ++*this;
+        return ret;
+    }
+
+    Modular operator--(int){
+        Modular ret = *this;
+        --*this;
+        return ret;
+    }
+
+    friend Modular operator+(const Modular &amp;a, const Modular &amp;b){ return Modular(a.val) += b; }
+
+    friend Modular operator-(const Modular &amp;a, const Modular &amp;b){ return Modular(a.val) -= b; }
+
+    friend Modular operator*(const Modular &amp;a, const Modular &amp;b){ return Modular(a.val) *= b; }
+
+    friend Modular operator/(const Modular &amp;a, const Modular &amp;b){ return Modular(a.val) /= b; }
+
+    friend Modular operator%(const Modular &amp;a, const Modular &amp;b){ return Modular(a.val) %= b; }
+
+    template&lt;class U&gt;
+    friend Modular operator^(const Modular &amp;a, const U &amp;b){ return Modular(a.val) ^= b; }
+
+    bool hasSqrt(){
+        return val == 0 || fpow(val, (mod::mod - 1)/2) == 1;
+    }
+
+    Modular sqrt(){
+        if(val == 0) return 0;
+        if(val == 1) return 1;
+        assert(hasSqrt());
+        Modular r = 1, c = 1, a = 1, b = 1, aa, bb;
+        while(((r*r - val) ^ ((mod::mod - 1)/2)) == 1) r++;
+        Modular mult = r*r - val;
+        T x = (mod::mod + 1)/2;
+        while(x){
+            if(x%2 == 1){
+                aa = c*b*mult + a*r;
+                bb = c*a + r*b;
+                a = aa, b = bb;
+            }
+            aa = c*c*mult + r*r;
+            bb = 2*c*r;
+            r = aa, c = bb;
+            x /= 2;
+        }
+        if(a &gt;= (mod::mod + 1)/2) a *= -1;
+        return a;
+    }
+
+    friend bool operator&lt;(const Modular &amp;a, const Modular &amp;b){ return a.val &lt; b.val; }
+
+    friend bool operator&lt;=(const Modular &amp;a, const Modular &amp;b){ return a.val &lt;= b.val; }
+
+    friend bool operator&gt;(const Modular &amp;a, const Modular &amp;b){ return a.val &gt; b.val; }
+
+    friend bool operator&gt;=(const Modular &amp;a, const Modular &amp;b){ return a.val &gt;= b.val; }
+
+    friend bool operator==(const Modular &amp;a, const Modular &amp;b){ return a.val == b.val; }
+
+    friend bool operator!=(const Modular &amp;a, const Modular &amp;b){ return a.val != b.val; }
+
+    friend ostream &amp;operator&lt;&lt;(ostream &amp;out, Modular x){ return out &lt;&lt; x.val; }
+
+    friend istream &amp;operator&gt;&gt;(istream &amp;in, Modular &amp;x){ 
+        in &gt;&gt; x.val;
+        x.val = x.val%mod::mod;
+        if(x.val &lt; 0) x.val += mod::mod;
+        return in;
+    }
+
+    string to_string(const Modular&amp;x) { return to_string(x.val); }
+};
+
+struct Mod { 
+    using type = int;
+    using cast = long long;
+    const static type mod = MOD;
+};
+
+using mint = Modular&lt;Mod&gt;;
+
+int par[200005][18];
+int depth[200005];
+int dsu[10000005];
+int rk[10000005];
+
+int g[10000005][2];
+pii range[200005];
+
+int enc(int a, int b, int rev = 0){
+    return a*18*2 + rev*18 + b;
+}
+
+int find(int x){
+    if(dsu[x] == x) return x;
+    return dsu[x] = find(dsu[x]);
+}
+
+mint ans = 1;
+
+void merge(int a, int b){
+    a = find(a), b = find(b);
+    if(rk[a] &lt; rk[b]) swap(a, b);
+    dsu[b] = a;
+    if(rk[a] == rk[b]) rk[a]++;
+}
+
+void prop(int a, int b){
+    if(find(a) == find(b)) return;
+    if(a%18 == 0){
+        a = find(a), b = find(b);
+        pii x = range[a/36], y = range[b/36];
+        ans /= x.ss - x.ff + 1, ans /= y.ss - y.ff + 1;
+        dsu[a] = b;
+        if(max(x.ff, y.ff) &gt; min(x.ss, y.ss)){
+            ans = 0;
+        } else {
+            range[b/36] = {max(x.ff, y.ff), min(x.ss, y.ss)};
+            ans *= range[b/36].ss - range[b/36].ff + 1;
+        }
+        return;
+    }
+    merge(a, b);
+    for(int i = 0; i &lt; 2; i++){
+        prop(g[a][i], g[b][i]);
+    }
+}
+
+int lca(int a, int b){
+    if(depth[a] &gt; depth[b]) swap(a, b);
+    for(int i = 17; i &gt;= 0; i--) if(depth[par[b][i]] &gt;= depth[a]) b = par[b][i];
+    if(a == b) return a;
+    for(int i = 17; i &gt;= 0; i--){
+        if(par[b][i] != par[a][i]){
+            a = par[a][i];
+            b = par[b][i];
+        }
+    }
+    return par[a][0];
+}
+
+vector&lt;int&gt; chain(int a, int b){
+    if(a == b){
+        return {enc(a, 0)};
+    }
+    vector&lt;int&gt; ret;
+    if(depth[a] &gt; depth[b]){
+        int cur = a;
+        int tar = depth[a] - depth[b] + 1;
+        for(int k = 0; k &lt;= 17; k++){
+            if(!tar) break;
+            if(tar &amp; (1 &lt;&lt; k)){
+                ret.pb(enc(cur, k, 0));
+                tar ^= (1 &lt;&lt; k);
+                cur = par[cur][k];
+            }
+        }
+    } else {
+        int cur = b;
+        int tar = depth[b] - depth[a] + 1;
+        for(int k = 17; k &gt;= 0; k--){
+            if(!tar) break;
+            if(tar &amp; (1 &lt;&lt; k)){
+                ret.pb(enc(cur, k, 1));
+                tar ^= (1 &lt;&lt; k);
+                cur = par[cur][k];
+            }
+        }
+        reverse(ret.begin(), ret.end());
+    }
+    return move(ret);
+}
+
+int up(int x, int k){
+    for(int i = 0; i &lt;= 17; i++){
+        if(!k) break;
+        if(k &amp; (1 &lt;&lt; i)){
+            x = par[x][i];
+            k ^= (1 &lt;&lt; i);
+        }
+    }
+    return x;
+}
+
+void link(int x1, int y1, int x2, int y2){
+    int z1 = lca(x1, y1), z2 = lca(x2, y2);
+    int st1 = x1, st2 = x2;
+    vector&lt;int&gt; dist;
+    dist.pb(depth[x1] - depth[z1]);
+    int dist1 = depth[x1] + depth[y1] - 2*depth[z1];
+    dist.pb(dist1);
+    if(depth[x2] - depth[z2] != depth[x1] - depth[z1]) dist.pb(depth[x2] - depth[z2]);
+    int dist2 = depth[x2] + depth[y2] - 2*depth[z2];
+    sort(dist.begin(), dist.end());
+    int d1 = 0, d2 = 0;
+    int prv = 0;
+    for(int i : dist){
+        int add = i - prv;
+        prv = i;
+        int t1, t2;
+        if(d1){
+            t1 = up(y1, dist1 - prv);
+        } else {
+            t1 = up(st1, prv);
+        }
+        if(d2){
+            t2 = up(y2, dist2 - prv);
+        } else {
+            t2 = up(st2, prv);
+        }
+        vector&lt;int&gt; a = chain(x1, t1);
+        vector&lt;int&gt; b = chain(x2, t2);
+        for(int i = 0; i &lt; a.size(); i++){
+            prop(a[i], b[i]);
+        }
+        x1 = t1;
+        x2 = t2;
+        if(x1 == z1) d1 = 1;
+        if(x2 == z2) d2 = 1;
+    }
+}
+
+vector&lt;int&gt; nxt[200005];
+
+void dfs(int x){
+    for(int i : nxt[x]){
+        depth[i] = depth[x] + 1;
+        dfs(i);
+    }
+}
+
+const int BUFSIZE = 20 &lt;&lt; 20;
+char Buf[BUFSIZE + 1], *buf = Buf;
+
+template&lt;class T&gt;
+void scan(T &amp;x){
+    int neg = 1;
+    for(x = 0; *buf &lt; '0' || *buf &gt; '9'; buf++) if(*buf == '-') neg = -1;
+    while(*buf &gt;= '0' &amp;&amp; *buf &lt;= '9') x = x*10 + (*buf - '0'), buf++;
+    x *= neg;
+}
+
+void setIO(){
+    fread(Buf, 1, BUFSIZE, stdin);
+}
+
+int main(){
+    setIO();
+    int n;
+    scan(n);
+    depth[1] = 1;
+    for(int i = 2; i &lt;= n; i++) scan(par[i][0]), nxt[par[i][0]].pb(i);
+    dfs(1);
+    for(int i = 1; i &lt;= n; i++){
+        scan(range[i].ff);
+        scan(range[i].ss);
+        ans *= range[i].ss - range[i].ff + 1;
+    }
+    for(int i = 1; i &lt;= n; i++){
+        dsu[enc(i, 0)] = enc(i, 0);
+        dsu[enc(i, 0, 1)] = enc(i, 0);
+    }
+    for(int i = 1; i &lt;= 17; i++){
+        for(int j = 0; j &lt;= n; j++){
+            dsu[enc(j, i)] = enc(j, i);
+            dsu[enc(j, i, 1)] = enc(j, i, 1);
+
+            g[enc(j, i)][0] = enc(j, i - 1);
+            g[enc(j, i)][1] = enc(par[j][i - 1], i - 1);
+
+            g[enc(j, i, 1)][0] = enc(par[j][i - 1], i - 1, 1);
+            g[enc(j, i, 1)][1] = enc(j, i - 1, 1);
+
+            par[j][i] = par[par[j][i - 1]][i - 1];
+        }
+    }
+    int m;
+    scan(m);
+    for(int i = 1; i &lt;= m; i++){
+        int x1, y1, x2, y2;
+        scan(x1), scan(y1), scan(x2), scan(y2);
+        link(x1, y1, x2, y2);
+        cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;
+    }
+}
+</code></pre>
+</div> </body> </html>

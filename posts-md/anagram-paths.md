@@ -1,0 +1,157 @@
+title: Anagram Paths (Tutorial)
+date: 2-28-2023
+tag: cf, tree, dp, tutorial
+
+---
+
+## Problem Statement
+
+[Problem Link](https://codeforces.com/problemset/problem/1168/D)
+
+## Solution
+
+When is a path anagrammable? First of all, every leaf depth obviously has to be the same. After two paths to leaves meet at their lca, they essentially become identical, so we only have to handle merging the two children of every node. Lets say we are merging two chains. The same amount of every character on the first chain must be on the second chain as well. Lets try to use as few `?` as possible for obvious reasons. A character \\(c\\) must occur on the anagram at least \\(max(x_1, x_2)\\) times, where \\(x1\\) and \\(x2\\) are its occurences in the first and second paths. Thus, as long as our path is long enough to accomodate this for every character, then it is valid. This actually extends to multiple paths as well and motivates a tree dp. Let \\(dp[x][c] = \\) the maximum times the character \\(c\\) appears on any path to a leaf from node \\(x\\). Then, we can make sure that our tree is valid in the subtree of \\(x\\) iff \\(\\sum_{i} dp[x][i] \\le dist[x]\\) where \\(dist\\) is the distance to a leaf. If we gurantee this at every node, then our tree is anagrammable. Once we gurrantee that it is, we can just use \\(dp[1][c] + dist[1] - \\sum_{i} dp[1][i]\\) to count the maximum amount of times \\(c\\) can appear on the path, since we use all the leftover `?` as \\(c\\), then add on the number of \\(c\\) we must use. To support updates, we would could walk up the tree and manually change each \\(dp\\) value. However, this is way too slow, so we should see how to optimize. This seems similar to a dynamic dp problem, but there doesn't seem to be a good way to gurantee the conditional at each node. So instead, lets see if we can cut out on any useless operations. First of all, we only care about nodes where a merge actually happens, so we can actually compress all chains of degree \\(1\\) into one node. We know that the condition that the depth of every leaf is the same, so maybe this means the number of chains is small. The number of chains is equivalent to the number of nodes with degree \\(2\\), and it turns out that this number is bounded. At every layer, the number of nodes is increasing. The only changes will be caused by relevant nodes. The number of distinct numbers that sum to \\(N\\) is sqrt, and each different number of nodes represents some relevant nodes. Since it only changes at most sqrt times, there are at most sqrt relevant nodes to update when we do the operation.
+
+## Code
+
+```c++
+#pragma GCC optimize("O3")
+#pragma GCC optimization ("unroll-loops")
+#pragma GCC target("avx,avx2,fma")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,tune=native")
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef pair<ld, ld> pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template<class K> using sset =  tree<K, null_type, less<K>, rb_tree_tag, tree_order_statistics_node_update>;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) > 0 && a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int main(){
+    setIO();
+    int n, q;
+    cin >> n >> q;
+    char arr[n + 1];
+    int par[n + 1];
+    vector<int> g[n + 1];
+    for(int i = 2; i <= n; i++){
+        cin >> par[i] >> arr[i];
+        g[par[i]].pb(i);
+    }
+    int depth[n + 1];
+    memset(depth, 0, sizeof(depth));
+    for(int i = n; i >= 1; i--){
+        for(int j : g[i]){
+            depth[i] = max(depth[i], depth[j] + 1);
+        }
+    }
+    bool fail = false;
+    for(int i = 1; i <= n; i++){
+        if(g[i].size() == 2){
+            fail |= depth[g[i][0]] != depth[g[i][1]];
+        }
+    }
+    if(fail){
+        while(q--){
+            cout << "Fou" << endl;
+        }
+        return 0;
+    }
+    depth[0] = depth[1];
+    int add[n + 1][26];
+    memset(add, 0, sizeof(add));
+    int comp[n + 1];
+    comp[1] = 1;
+    for(int i = 2; i <= n; i++){
+        comp[i] = (g[par[i]].size() > 1 ? i : comp[par[i]]);
+        depth[comp[i]] = min(depth[comp[i]], depth[i]);
+        if(arr[i] != '?') add[comp[i]][arr[i] - 'a']++;
+    }
+    vector<int> g1[n + 1];
+    for(int i = 1; i <= n; i++){
+        for(int j : g[i]){
+            if(comp[j] != comp[i]){
+                g1[comp[i]].pb(comp[j]);
+                par[comp[j]] = comp[i];
+            }
+        }
+    }
+    for(int i = 1; i <= n; i++) swap(g1[i], g[i]);
+    int bad = 0;
+    int deg[n + 1];
+    int dp[n + 1][26];
+    memset(dp, 0, sizeof(dp));
+    memset(deg, 0, sizeof(deg));
+    g[0].pb(1);
+    comp[0] = 0;
+    for(int i = n; i >= 0; i--){
+        if(comp[i] != i) continue;
+        for(int j : g[i]){
+            for(int k = 0; k < 26; k++){
+                dp[i][k] = max(dp[i][k], dp[j][k] + add[j][k]);
+            }
+        }
+        for(int j = 0; j < 26; j++) deg[i] += dp[i][j];
+        bad += deg[i] > depth[i];
+    }
+    par[1] = 0;
+    while(q--){
+        int x;
+        char c;
+        cin >> x >> c;
+        char prv = arr[x];
+        char nw = c;
+        arr[x] = c;
+        x = comp[x];
+        if(prv != '?') add[x][prv - 'a']--;
+        if(nw != '?') add[x][nw - 'a']++;
+        while(x){
+            int a = x;
+            x = par[x];
+            int b = (g[x][0] == a && g[x].size() > 1 ? g[x][1] : g[x][0]);
+            bad -= deg[x] > depth[x];
+            if(prv != '?'){
+                deg[x] -= dp[x][prv - 'a'];
+                dp[x][prv - 'a'] = max(dp[a][prv - 'a'] + add[a][prv - 'a'], dp[b][prv - 'a'] + add[b][prv - 'a']);
+                deg[x] += dp[x][prv - 'a'];
+            }
+            if(nw != '?'){
+                deg[x] -= dp[x][nw - 'a'];
+                dp[x][nw - 'a'] = max(dp[a][nw - 'a'] + add[a][nw - 'a'], dp[b][nw - 'a'] + add[b][nw - 'a']);
+                deg[x] += dp[x][nw - 'a'];
+            }
+            bad += deg[x] > depth[x];
+        }
+        if(bad) cout << "Fou" << endl;
+        else {
+            int ans = 0;
+            for(int i = 1; i <= 26; i++){
+                ans += (dp[0][i - 1] + depth[0] - deg[0])*i;
+            }
+            cout << "Shi" << " " << ans << endl;
+        }
+    }
+}
+```

@@ -26,8 +26,8 @@ Our dfs will return the maximum flow sendable into \\(x\\) if given a limit of \
 
 ```c++
 void addedge(int a, int b, int v){
-	g2[a].pb({b, sz});
-	g2[b].pb({a, sz + 1});
+	g[a].pb({b, sz});
+	g[b].pb({a, sz + 1});
 	flow[sz] = {0, v};
 	flow[sz + 1] = {0, 0};
 	sz += 2;
@@ -42,8 +42,8 @@ bool bfs(){
 		int x = q.front();
 		q.pop();
 		if(x == t) return true;
-		for(int j = 0; j < g2[x].size(); j++){
-			pii i = g2[x][j];
+		for(int j = 0; j < g[x].size(); j++){
+			pii i = g[x][j];
 			if(!depth[i.ff] && flow[i.ss].ff < flow[i.ss].ss){
 				depth[i.ff] = depth[x] + 1;
 				q.push(i.ff);
@@ -56,8 +56,8 @@ bool bfs(){
 int dfs(int x = s, int sum = INF){
 	if(x == t || sum == 0) return sum;
 	int ret = 0;
-	for(; st[x] < g2[x].size(); st[x]++){
-		pii i = g2[x][st[x]];
+	for(; st[x] < g[x].size(); st[x]++){
+		pii i = g[x][st[x]];
 		if(flow[i.ss].ff < flow[i.ss].ss && depth[x] + 1 == depth[i.ff]){
 			int sub = dfs(i.ff, min(sum, flow[i.ss].ss - flow[i.ss].ff));
 			if(sub == 0) continue;
