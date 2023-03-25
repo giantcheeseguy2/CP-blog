@@ -1,0 +1,126 @@
+title: Hoof And Brain (Tutorial)
+date: 3-24-2023
+tag: usaco, graph, game, dsu, tutorial
+
+---
+
+## Problem Statement
+
+[Problem Link](http://usaco.org/index.php?page=viewproblem2&cpid=1237)
+
+## Solution
+
+This problem seems impossible at first, so we should probably first try to reduce it. First of all, if one of the tokens are at a node with no outgoing edges, then the brain can move it and instantly win. Thus, we can continuously remove nodes that have no outgoing edges. This can be easily done using a bfs. Following this idea, we can also merge two nodes if one of them has only one outgoing edge to the other, since if the brain chooses that node then it will be forced to move into the other, thus being the same state. So if we somehow just merge everything, our remaining graph has a maximum degree of two. Actually, this already solves our problem, since in a graph where every node has two outgoing edges, it will be impossible for brain to win no matter what. Thus, the only case where brain wins if it goes to dead end or the two tokens are in a component with the same state. It is easy to see that the hoof will win otherwise. To do the merging, we can use small to large and dsu, and just make sure that all the outgoing and incoming edges have the correct component they are pointing to. We can use the sum of these two to decide when to swap in the small to large.
+
+## Code
+
+```c++
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef pair<ld, ld> pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template<class K> using sset =  tree<K, null_type, less<K>, rb_tree_tag, tree_order_statistics_node_update>;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) > 0 && a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int par[200005];
+
+int find(int x){
+    if(x == par[x]) return x;
+    return par[x] = find(par[x]);
+}
+
+int main(){
+    setIO();
+    int n, m;
+    cin >> n >> m;
+    set<int> g1[n + 1], g2[n + 1];
+    for(int i = 0; i < m; i++){
+        int a, b;
+        cin >> a >> b;
+        g1[a].insert(b);
+        g2[b].insert(a);
+    }
+    queue<int> q;
+    for(int i = 1; i <= n; i++) if(g1[i].size() == 0) q.push(i);
+    bool brain[n + 1];
+    for(int i = 1; i <= n; i++) brain[i] = false;
+    while(!q.empty()){
+        int x = q.front();
+        brain[x] = true;
+        q.pop();
+        for(int i : g2[x]){
+            g1[i].erase(x);
+            if(g1[i].size() == 0){
+                q.push(i);
+            }
+        }
+    }
+    for(int i = 1; i <= n; i++){
+        par[i] = i;
+        if(g1[i].size() == 1){
+            q.push(i);
+        }
+    }
+    while(!q.empty()){
+        int x = find(q.front());
+        q.pop();
+        if(g1[x].size() != 1) continue;
+        int nxt = find(*g1[x].begin());
+        if(x == nxt) continue;
+        g2[nxt].erase(x);
+        g1[x].clear();
+        if(g2[nxt].size() + g1[nxt].size() < g2[x].size() + g2[x].size()){
+            swap(x, nxt);
+        }
+        par[x] = nxt;
+        for(int i : g1[x]){
+            g1[nxt].insert(i);
+            g2[i].erase(x);
+            g2[i].insert(nxt);
+        }
+        for(int i : g2[x]){
+            int prv = g1[i].size();
+            g1[i].erase(x);
+            g1[i].insert(nxt);
+            g2[nxt].insert(i);
+            if(g1[i].size() == 1){
+                q.push(i);
+            }
+        }
+        g1[x].clear();
+        g2[x].clear(); 
+    } 
+    int t;
+    cin >> t;
+    while(t--){
+        int a, b;
+        cin >> a >> b;
+        //cout << find(a) << " " << find(b) << " ";
+        cout << (brain[a] || brain[b] || (find(a) == find(b)) ? "B" : "H");
+    }
+    cout << endl;
+}
+```

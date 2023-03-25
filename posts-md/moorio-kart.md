@@ -1,6 +1,6 @@
-title: Name (Tutorial)
-date: 0-00-0000
-tag: tutorial
+title: Moorio Kart (Tutorial)
+date: 3-25-2023
+tag: usaco, tree, math, tutorial
 
 ---
 

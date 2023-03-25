@@ -1,0 +1,105 @@
+title: Approximate Diameter (Tutorial)
+date: 3-16-2023
+tag: cf, bfs, binary search, tutorial
+
+---
+
+## Problem Statement
+
+[Problem Link](https://codeforces.com/contest/1804/problem/F)
+
+## Solution
+
+First of all, how do we even find an approximate diameter. Actually, this is just the maximum distance when you run a bfs from any node in the graph, or the maximum shortest path from a given node to any other node. First of all, this value is obviously \\(\\le\\) the diameter by definition. We also know that this value is \\(\\ge\\) half of the diameter. We can prove this because of two cases. If the node is on any diameter, then this is obviously true, since it will be at least half away from one of the endpoints. If the node is on no diameter, then it must be at least halfway from one of two endpoints on any diameter, since it will eventually enter a diameter on a path. Now, if we run a bfs at every query, we can have our answer. However, this is still too slow. We know that our answer is monotonically decreasing, so if we can prove that the number of distinct answers is bounded, we can either run a divide and conquer to fill the array, or manually compute each segment. In fact, the number of answers is bounded. Remember that our approximation also lets us go up to double the diameter. Thus, for a given answer \\(x\\), it will be able to cover everything to the left of it with \\(2 \\cdot x\\) until the diameter is greater than \\(2 \\cdot x\\). Thus, we only have \\(log N\\) distinct answers, since it doubles every time. So, we can either use divide and conquer or binary search to find these intervals on the answer array. 
+
+## Code
+
+```c++
+#pragma GCC optimize("O3")
+#pragma GCC target("avx,avx2,fma")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,tune=native")
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef pair<ld, ld> pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template<class K> using sset =  tree<K, null_type, less<K>, rb_tree_tag, tree_order_statistics_node_update>;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) > 0 && a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+vector<pii> g[100005];
+int dist[100005];
+int n, m, q;
+
+int bfs(int mid){
+    for(int i = 1; i <= n; i++) dist[i] = 0;
+    queue<int> q;
+    dist[1] = 1;
+    q.push(1);
+    int ret = 0;
+    while(!q.empty()){
+        int x = q.front();
+        q.pop();
+        ret = max(ret, dist[x]);
+        for(pii i : g[x]){
+            if(i.ss <= mid && !dist[i.ff]){
+                dist[i.ff] = dist[x] + 1;
+                q.push(i.ff);
+            }
+        }
+    }
+    return ret - 1;
+}
+
+int main(){
+    setIO();
+    cin >> n >> m >> q;
+    for(int i = 0; i < m; i++){
+        int a, b;
+        cin >> a >> b;
+        g[a].pb({b, 0});
+        g[b].pb({a, 0});
+    }
+    for(int i = 1; i <= q; i++){
+        int a, b;
+        cin >> a >> b;
+        g[a].pb({b, i});
+        g[b].pb({a, i});
+    }
+    int ans[q + 1];
+    for(int i = q; i >= 0; i--){
+        ans[i] = bfs(i);
+        int l = 0, r = i;
+        while(l < r){
+            int mid = (l + r)/2;
+            if(bfs(mid) <= 2*ans[i]) r = mid;
+            else l = mid + 1;
+        }
+        for(int j = i - 1; j >= l; j--) ans[j] = ans[i]; 
+        i = l;
+    }
+    for(int i = 0; i <= q; i++) cout << 2*ans[i] << " ";
+    cout << endl;
+}
+```
