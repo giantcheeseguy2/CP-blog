@@ -1,0 +1,131 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Monster (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Monster (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">3-25-2023</div></div> <div class="tag-container"><div class="tag"><p> atcoder</p></div><div class="tag"><p> dp</p></div><div class="tag"><p> tree</p></div><div class="tag"><p> slope trick</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://atcoder.jp/contests/abc275/tasks/abc275_h">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Since the price of shooting an interval is given by the maximum in that interval, it is choose intervals by max, since for each maximum, it is optimal to create an interval until it reaches the next greater. Thus, we only actually have \(N\) intervals to consider. We could perhaps greedily choose intervals, but it is hard to decide which intervals are best. So, our solution most likely needs dynamic programming. Actually, lets look at our intervals. If all values are distinct, none of our intervals actually intersect each other, so we can build a cartesian tree like structure on the intervals. In one operation, a node will subtract from itself and all nodes in the subtree. Thus, for each node, we really only care about the maximum hp in the subtree. This motivates a dp solution with \(dp[i][j] = \) the minimium cost to have a maximum of \(j\) at node \(i\). Transitions are just taking the sum of all the children, and forcing the max to be at least the health at node \(i\). Then for each node, try decreasing the maximum with the cost at that node. Actually, since the decrements are all done using the same slope, we can try to apply slope trick to this problem, storing intervals of slopes instead of all the values. This can be done using a map of the difference array. Notice that when adding a slope, it will always be for some prefix, since the slopes will be stored in decreasing order, so we just remove while it is optimal. The implementation for this may be a bit tricky.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+pii seg[400005];
+pii arr[100005];
+int n;
+
+void build(int l = 1, int r = n, int cur = 0){
+    if(l == r){
+        seg[cur] = {arr[l].ss, l};
+        return;
+    }
+    int mid = (l + r)/2;
+    build(l, mid, cur*2 + 1);
+    build(mid + 1, r, cur*2 + 2);
+    seg[cur] = max(seg[cur*2 + 1], seg[cur*2 + 2]);
+}
+
+pii query(int l, int r, int ul = 1, int ur = n, int cur = 0){
+    if(l &lt;= ul &amp;&amp; ur &lt;= r) return seg[cur];
+    int mid = (ul + ur)/2;
+    if(r &lt;= mid) return query(l, r, ul, mid, cur*2 + 1);
+    if(l &gt; mid) return query(l, r, mid + 1, ur, cur*2 + 2);
+    return max(query(l, r, ul, mid, cur*2 + 1), query(l, r, mid + 1, ur, cur*2 + 2));
+}
+
+vector&lt;int&gt; g[100005];
+
+int dnq(int l = 1, int r = n){
+    if(l &gt;= r) return l;
+    int mid = query(l, r).ss;
+    if(l &lt;= mid - 1) g[mid].pb(dnq(l, mid - 1));
+    if(mid + 1 &lt;= r) g[mid].pb(dnq(mid + 1, r));
+    return mid;
+}
+
+map&lt;int, ll&gt; dp[100005];
+ll st[100005];
+
+void dfs(int x){
+    if(g[x].size() == 0){
+        st[x] = (ll)arr[x].ff*arr[x].ss;
+        dp[x][1] -= arr[x].ss;
+        dp[x][arr[x].ff + 1] += arr[x].ss;
+        return;
+    }
+    for(int i : g[x]){
+        dfs(i);
+        if(dp[i].size() &gt; dp[x].size()){
+            swap(dp[i], dp[x]);
+            swap(st[i], st[x]);
+        }
+        st[x] += st[i];
+        for(pll j : dp[i]){
+            dp[x][j.ff] += j.ss;
+        }
+    }
+    ll cur = st[x];
+    ll step = 0;
+    //[0, prv)
+    int prv = 0;
+    dp[x][arr[x].ff + 1] += 0;
+    map&lt;int, ll&gt;::iterator it = dp[x].begin();
+    while(it != dp[x].end() &amp;&amp; (*it).ff &lt;= arr[x].ff){
+        cur += step*((*it).ff - prv);
+        prv = (*it).ff;
+        step += (*it).ss;
+        it = dp[x].erase(it);
+    }
+    cur += step*(arr[x].ff - prv + 1);
+    prv = arr[x].ff + 1;
+    while(it != dp[x].end() &amp;&amp; step + (*it).ss &lt;= -arr[x].ss){
+        cur += step*((*it).ff - prv);
+        prv = (*it).ff;
+        step += (*it).ss;
+        it = dp[x].erase(it);
+    }
+    assert(it != dp[x].end());
+    cur += (ll)step*((*it).ff - prv);
+    prv = (*it).ff - 1;
+    dp[x][1] -= arr[x].ss;
+    dp[x][prv + 1] += arr[x].ss + step;
+    st[x] = cur + (ll)prv*arr[x].ss;
+}
+
+int main(){
+    setIO();
+    cin &gt;&gt; n;
+    for(int i = 1; i &lt;= n; i++) cin &gt;&gt; arr[i].ff;
+    for(int i = 1; i &lt;= n; i++) cin &gt;&gt; arr[i].ss;
+    build();
+    int rt = dnq();
+    dfs(rt);
+    cout &lt;&lt; st[rt] &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

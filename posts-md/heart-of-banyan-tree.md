@@ -1,6 +1,6 @@
 title: Heart Of Banyan Tree (Tutorial)
 date: 3-25-2023
-tag: xyd, tutorial
+tag: xyd, tree, dp, tutorial
 
 ---
 
@@ -10,7 +10,7 @@ tag: xyd, tutorial
 
 ## Solution
 
-
+Lets consider the case where we only want to solve for the root first. How can we get the heart to end at the root? Instead of considering the token's actual path, which is hard, lets see the affect of adding a node on the heart. If the heart is at a node, and two nodes in seperate subtrees of the heart are activated, they will actually cancel each other out. So, to keep our node at the root, we will be subtracting one from pairs of subtrees until all of them are empty or there is one left. The algorithm for doing this, is actually to choose the two largest subtrees and subtract them, and keep doing that. Furthermore, if there is only one subtree left, it is easy to see that there is always some way to subtract pairs such that the remaining one is the largest subtree. For the remaining elements in the largest subtree, we have to be able to cancel them out somehow, so our strategy will be to walk our heart into the largest subtree, cancel out the excess elements, then pair up subtrees like we did before. Thus, if we have \\(dp[i] = \\) minimum amount of elements that cannot be cancelled out after walking into \\(i\\), then we will be able to cancel out the excess in the largest subtree. Our set of possible values for that subtree will be \\(dp[i], dp[i] + 2, dp[i] + 4, ..., size of subtreee\\). Now, there are two cases to consider when calculating \\(dp[i]\\). Lets say \\(j\\) is the largest child of \\(i\\). If the amount nodes outside the largest subtree is smaller than \\(dp[j]\\), then it is obviously impossible to completely cancel out, and \\(dp[i] = dp[j] - outside nodes\\). Otherwise, \\(dp[i] = 1 or 2\\) depending on whether the parity of amount of outside nodes is equal to \\(dp[j]\\). First of all, we know that we can reduce the amount of nodes outside \\(j\\) to some single smaller value by just cancelling out. Since we chose the largest subtree, this single smaller value will always be within the set of values that \\(j\\) can be come. The only thing that may cause it not to be is a difference in parity, since we can only remove nodes in pairs of \\(2\\). Now, to extend this to any node, we can just merge a node and everything on the path to the root into a single one and reduce it to the root case. Thus, we can just run a dfs and maintain the largest subtree on the way. 
 
 ## Code
 
