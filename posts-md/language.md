@@ -1,6 +1,6 @@
 title: Language (Tutorial)
 date: 12-4-2022
-tag: cf, g, tutorial
+tag: cf, segtree merge, tree, tutorial
 
 ---
 
@@ -10,7 +10,7 @@ tag: cf, g, tutorial
 
 ## Solution
 
-How can we count all pairs. We should either do it by update or by node. If we did it by update, we would have to somehow exclude all the overlapping pairs, which seems very hard. If we did it by node, we only have to maintain the total set of nodes covered by updates that overlap the node, which seems much easier. To do this, we have to be able to know the total set of nodes covered by some given nodes. If we sort the nodes by preorder traversal, then for a set of nodes \\(x_i\\), the total area covered \\(\\sum depth[x_i] - \\sum depth[lca(x_i, x_{i + 1})] - depth[lca(x_i)]\\). To support toggling on and off, we can actually put this on a segtree that stores the nodes in the correct order, and consider the lca when merging. We should also store the minimum depth of any lca or node. Now, we can do a dfs on the tree, and toggle nodes on the endpoints of the update and toggle them off at the parent of their lca.
+How can we count all pairs. We should either do it by update or by node. If we did it by update, we would have to somehow exclude all the overlapping pairs, which seems very hard. If we did it by node, we only have to maintain the total set of nodes covered by updates that overlap the node, which seems much easier. To do this, we have to be able to know the total set of nodes covered by some given nodes. If we sort the nodes by preorder traversal, then for a set of nodes \\(x_i\\), the total area covered \\(\\sum depth[x_i] - \\sum depth[lca(x_i, x_{i + 1})] - depth[lca(x_i)] + 1\\). To support toggling on and off, we can actually put this on a segtree that stores the nodes in the correct order, and consider the lca when merging. We should also store the minimum depth of any lca or node. Now, we can do a dfs on the tree, and toggle nodes on the endpoints of the update and toggle them off at the parent of their lca.
 
 ## Code
 
