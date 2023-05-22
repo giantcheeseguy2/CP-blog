@@ -1,0 +1,90 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Bracket Cost (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Bracket Cost (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">2-3-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1750/problem/E">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets try to solve this for a single string first. We can check if a sequence is valid by converting a <code>(</code> to \(1\) and <code>)</code> to \(-1\). Then, to check, we just need to make sure that every prefix sum is \(\ge 0\) and the total sum is \(0\). To solve this, lets see if we can get a lower bound on our answer, which is the sum of magnitude of \(max(0, sum)\) and the minimum negative prefix. It is easy to see that we cannot do better than this since every operation can only reduce one of these values by at most \(1\). Rotating a <code>(</code> cannot reduce the sum, and rotating a <code>)</code> cannot reduce the minimum prefix. Similarly, adding a <code>(</code> cannot reduce the sum, and adding a <code>)</code> cannot reduce the minimum prefix. Note that if our sum is negative, we can solve it simultaneosly with the minimum prefix. As in many problems, assuming the lower bound is the answer will result in an ac, but in this case, it is actually easy to create a construction to achieve this lower bound. If our sum is not zero, we can obviously just add in parentheses until it is. Now, to fix the minimum, moving that amount of <code>(</code>s to the front of the string is sufficient. Now, we just have to calculate this over all substrings somehow. Lets fix the right endpoint and calculate the answer for all left endpoints. The first issue we run into is that we would somehow have to compute our prefix sum starting from zero for every left endpoint. However, we can fix this by just setting our zero of the range with left endpoint \(i\) to be \(pre[i - 1]\). Now, we just have to find the sum of sums for each left endpoint and the sum of minimums for each left endpoints. Our equation for an interval \([l, r]\) will be \(pre[l - 1] - min + max(0, pre[r] - pre[l - 1])\). This turns out to be \(max(pre[l - 1], pre[r]) - min\). Minimums can be easily maintained with a monotonic static, since once we add in a prefix sum we never want to change it. Finding the sum can be done by breaking up the max into two cases and using a segtree.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#pragma GCC optimize(&quot;O3&quot;)
+#pragma GCC optimization (&quot;unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,tune=native&quot;)
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+ll bit[400005][2];
+int n;
+
+void update(int x, int v, int t){
+    for(x++; x &lt;= 2*n + 1; x += x &amp; (-x)) bit[x][t] += v;
+}
+
+ll query(int x, int t, ll ret = 0){
+    for(x++; x; x -= x &amp; (-x)) ret += bit[x][t];
+    return ret;
+}
+
+int main(){
+    setIO();
+    int t;
+    cin &gt;&gt; t;
+    for(int tt = 1; tt &lt;= t; tt++){
+        cin &gt;&gt; n;
+        string s;
+        cin &gt;&gt; s;
+        int cur = 0;
+        ll sum = 0;
+        ll ans = 0;
+        stack&lt;pii&gt; smn;
+        smn.push({0, 0});
+        for(int i = 1; i &lt;= 2*n + 1; i++) bit[i][0] = bit[i][1] = 0;
+        update(n, 1, 0);
+        for(int i = 1; i &lt;= n; i++){
+            if(s[i - 1] == '(') cur++;
+            else cur--;
+            int prv = i;
+            while(!smn.empty() &amp;&amp; smn.top().ff &gt; cur){
+                sum += (ll)smn.top().ff*(prv - smn.top().ss);
+                prv = smn.top().ss;
+                smn.pop();
+            }
+            smn.push({cur, prv});
+            sum -= (ll)cur*(i - prv + 1);
+            ans += cur*query(cur + n, 0);
+            ans += query(2*n, 1) - query(cur + n, 1);
+            update(cur + n, 1, 0);
+            update(cur + n, cur, 1);
+            ans += sum + cur;
+        }
+        cout &lt;&lt; ans &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>

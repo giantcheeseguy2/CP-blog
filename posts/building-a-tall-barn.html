@@ -1,0 +1,80 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Building A Tall Barn (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Building A Tall Barn (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">10-23-2022</div></div> <div class="tag-container"><div class="tag"><p> usaco</p></div><div class="tag"><p> binary search</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="http://www.usaco.org/index.php?page=viewproblem2&amp;cpid=697">Problem Link</a></p>
+<h2>Solution</h2>
+<p>By plotting \(y = \lfloor \frac{a_i}{x} \rfloor - \lfloor \frac{a_i}{x + 1} \rfloor \), we can see how much adding a cow to \(a_i\) changes the total time. It is obviously optimal to always greedily add the next cow to the position where it will reduce the time most. Looking at the graphs of each \(a_i\) with the equation above, we can see that we want to choose some a line and take add the number of cows that each floor needs to get to that amount of time saved. Also add in some leftover cows. The line can be found using a binary search, and checking the total number of cows needed can be done with the quadratic formula for each floor. After that, you can simply greedily choose the last \(N\) cows to add.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int n;
+ll arr[100005], k;
+
+bool check(ld x){
+    ll sum = 0;
+    for(int i = 0; i &lt; n; i++){
+        ld c = arr[i]/x;
+        sum += (ll)floor((sqrtl(1 + 4*c) - 1)/2) + 1;
+    }
+    return sum &lt;= k;
+}
+
+ld eps = 1e-12;
+
+int main(){
+    setIO();
+    freopen(&quot;tallbarn.in&quot;, &quot;r&quot;, stdin);
+    freopen(&quot;tallbarn.out&quot;, &quot;w&quot;, stdout);
+    cin &gt;&gt; n &gt;&gt; k;
+    for(int i = 0; i &lt; n; i++) cin &gt;&gt; arr[i];
+    ld l = 0, r = 1e12;
+    for(int i = 0; i &lt; 200; i++){
+        ld mid = (l + r)/2;
+        if(check(mid)) r = mid;
+        else l = mid + eps;
+    }
+    ll cnt[n];
+    for(int i = 0; i &lt; n; i++){
+        ld c = arr[i]/l;
+        cnt[i] = (ll)floor((sqrtl(1 + 4*c) - 1)/2) + 1;
+        k -= cnt[i];
+    }
+    vector&lt;pair&lt;ld, int&gt;&gt; v;
+    for(int i = 0; i &lt; n; i++) v.pb({(ld)arr[i]/cnt[i] - (ld)arr[i]/(cnt[i] + 1), i});
+    sort(v.rbegin(), v.rend());
+    ld sum = 0;
+    for(int i = 0; i &lt; min((int)v.size(), (int)k); i++) cnt[v[i].ss]++, sum += v[i].ff;
+    ld ans = 0;
+    for(int i = 0; i &lt; n; i++) ans += (ld)arr[i]/cnt[i];
+    cout &lt;&lt; (ll)round(ans) &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

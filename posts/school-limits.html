@@ -1,0 +1,133 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | School Limits (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>School Limits (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">1-1-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> ad hoc</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/group/uodset6U2h/contest/412294/problem/A">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Looking at the subtasks, they can all be solved just by maintaining a set and doing some casework. In fact the entire problem can be solved by using many sets and doing casework.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#pragma GCC optimize(&quot;O3&quot;)
+#pragma GCC optimization (&quot;unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,tune=native&quot;)
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int main(){
+    setIO();
+    int n, k;
+    cin &gt;&gt; n &gt;&gt; k;
+    int arr[n + 1];
+    for(int i = 1; i &lt;= n; i++) cin &gt;&gt; arr[i];
+    set&lt;pii, greater&lt;pii&gt;&gt; cur, nxt;
+    set&lt;int, greater&lt;int&gt;&gt; in[n + 1], out[n + 1];
+    int q;
+    cin &gt;&gt; q;
+    while(q--){
+        int t, a, b;
+        cin &gt;&gt; t &gt;&gt; a &gt;&gt; b;
+        if(t == 1){
+            if(cur.size() &lt; k){
+                if(in[a].size() &lt; arr[a]){
+                    cout &lt;&lt; a &lt;&lt; &quot; &quot; &lt;&lt; b &lt;&lt; endl;
+                    cur.insert({b, a});
+                    in[a].insert(b);
+                } else {
+                    if(b &gt; *in[a].rbegin()){
+                        out[a].insert(*in[a].rbegin());
+                        cur.erase({*in[a].rbegin(), a});
+                        in[a].erase(*in[a].rbegin());
+                        in[a].insert(b);
+                        cout &lt;&lt; a &lt;&lt; &quot; &quot; &lt;&lt; b &lt;&lt; endl;
+                        cur.insert({b, a});
+                    } else {
+                        out[a].insert(b);
+                    }
+                }
+            } else {
+                if(b &gt; (*cur.rbegin()).ff){
+                    pii x = *cur.rbegin();
+                    if(in[a].size() &lt; arr[a]){
+                        in[x.ss].erase(x.ff);
+                        cur.erase(x);
+                        nxt.insert(x);
+                        while(out[x.ss].size()){
+                            nxt.insert({*out[x.ss].begin(), x.ss});
+                            out[x.ss].erase(out[x.ss].begin());
+                        }
+                        cout &lt;&lt; a &lt;&lt; &quot; &quot; &lt;&lt; b &lt;&lt; endl;
+                        cur.insert({b, a});
+                        in[a].insert(b);
+                    } else {
+                        if(b &gt; *in[a].rbegin()){
+                            out[a].insert(*in[a].rbegin());
+                            cur.erase({*in[a].rbegin(), a});
+                            in[a].erase(*in[a].rbegin());
+                            cout &lt;&lt; a &lt;&lt; &quot; &quot; &lt;&lt; b &lt;&lt; endl;
+                            cur.insert({b, a});
+                            in[a].insert(b);
+                        } else {
+                            out[a].insert(b);
+                        }
+                    }
+                } else {
+                    if(in[a].size() &lt; arr[a]) nxt.insert({b, a});
+                    else out[a].insert(b);
+                }
+            }
+        } else {
+            if(cur.find({b, a}) != cur.end()){
+                in[a].erase(b);
+                cur.erase({b, a});
+                while(out[a].size()){
+                    nxt.insert({*out[a].begin(), a});
+                    out[a].erase(out[a].begin());
+                }
+                while(nxt.size()){
+                    pii x = *nxt.begin();
+                    if(in[x.ss].size() &lt; arr[x.ss]){
+                        cout &lt;&lt; x.ss &lt;&lt; &quot; &quot; &lt;&lt; x.ff &lt;&lt; endl;
+                        cur.insert(x);
+                        in[x.ss].insert(x.ff);
+                        nxt.erase(x);
+                        break;
+                    }
+                    out[x.ss].insert(x.ff);
+                    nxt.erase(x);
+                }
+            } else if(nxt.find({b, a}) != nxt.end()){
+                nxt.erase({b, a});
+            } else {
+                out[a].erase(b);
+            }
+        }
+    }
+}
+</code></pre>
+</div> </body> </html>

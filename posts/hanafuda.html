@@ -1,0 +1,122 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Hanafuda (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Hanafuda (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">2-4-2023</div></div> <div class="tag-container"><div class="tag"><p> xyd</p></div><div class="tag"><p> flows</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://contest.xinyoudui.com/contest/37/problem/177">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Our problem is equivalent to playing a game on a graph, where players take turns moving a token to an adjacent node and are unable to move to the same position twice and whoever can't make a move loses. The edges are between cards that either share a color or a number. Since Grammy plays two cards initially, it is equivalent to her choosing a starting vertex and a first move, with the game proceeding as normal from there. Thus, solving for all initial cards is the same as solving for the winner of all initial nodes. It is hard to use any kind of dp to calculate the answer for all nodes simultaneously, since the states always depend on the path you have taken so far. Thus, lets try to find the win condition given a single node, which is actually a maximum matching problem. Consider the maximum matching of a graph. If the starting node is in every max matching of the graph, then it is easy to see that the first player can just always take the edge used in the max matching. The second player will also have no choice but to return the token to a used edge in the max matching, since if they didn't, then the initial node would not be in every maximum matching. We can also show that if the initial node is not in every matching, then the second person always wins, since every odd length path from the node will always have an extra edge from the max matching at the end, otherwise it would not be a max matching. Thus, we just have to check which nodes are contained on every bipartite matching. This is just when a node has no path remaining to it from the source, since this means we have taken it and cannot &quot;undo&quot; it anymore. Our final issue is that our graph is very dense, however, this can be fixed by adding dummy nodes for each color and number and connecting them to our graph nodes with a capacity of infinity.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#pragma GCC optimize(&quot;O3&quot;)
+#pragma GCC optimization (&quot;unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,tune=native&quot;)
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int m, c;
+int n1, n2;
+pii arr1[40005], arr2[40005];
+int depth[100005];
+vector&lt;pii&gt; g[100005];
+int flow[500005];
+int edge[500005];
+int st[100005];
+int s, t, sz = 0;
+
+void addedge(int a, int b, int v){
+    g[a].pb({b, sz});
+    g[b].pb({a, sz + 1});
+    edge[sz] = v;
+    sz += 2;
+}
+
+bool bfs(){
+    for(int i = s; i &lt;= t; i++) depth[i] = INF, st[i] = 0;
+    depth[s] = 1;
+    queue&lt;int&gt; q;
+    q.push(s);
+    while(!q.empty()){
+        int x = q.front();
+        q.pop();
+        if(x == t) return true;
+        for(pii i : g[x]){
+            if(flow[i.ss] &lt; edge[i.ss] &amp;&amp; depth[i.ff] == INF){
+                depth[i.ff] = depth[x] + 1;
+                q.push(i.ff);
+            }
+        }
+    }
+    return false;
+}
+
+int dfs(int x = s, int sum = INF){
+    if(x == t || sum == 0) return sum;
+    int ret = 0;
+    for(; st[x] &lt; g[x].size(); st[x]++){
+        pii i = g[x][st[x]];
+        if(flow[i.ss] &lt; edge[i.ss] &amp;&amp; depth[x] + 1 == depth[i.ff]){
+            int sub = dfs(i.ff, min(sum, edge[i.ss] - flow[i.ss]));
+            if(sub == 0) continue;
+            flow[i.ss] += sub;
+            flow[i.ss ^ 1] -= sub;
+            ret += sub;
+            sum -= sub;
+        }
+        if(!sum) break;
+    }
+    if(!ret) depth[x] = INF;
+    return ret;
+}
+
+int main(){
+    setIO();
+    cin &gt;&gt; m &gt;&gt; c;
+    cin &gt;&gt; n1;
+    for(int i = 1; i &lt;= n1; i++) cin &gt;&gt; arr1[i].ff &gt;&gt; arr1[i].ss;
+    cin &gt;&gt; n2;
+    for(int i = 1; i &lt;= n2; i++) cin &gt;&gt; arr2[i].ff &gt;&gt; arr2[i].ss;
+    s = 0, t = n1 + n2 + m + c + 1;
+    int in[n1 + 1];
+    for(int i = 1; i &lt;= n1; i++){
+        in[i] = sz;
+        addedge(s, i, 1);
+        addedge(i, n1 + n2 + arr1[i].ff, INF);
+        addedge(i, n1 + n2 + m + arr1[i].ss, INF);
+    }
+    for(int i = n1 + 1; i &lt;= n1 + n2; i++){
+        addedge(i, t, 1);
+        addedge(n1 + n2 + arr2[i - n1].ff, i, INF);
+        addedge(n1 + n2 + m + arr2[i - n1].ss, i, INF);
+    }
+    while(bfs()) while(dfs()) continue;
+    bfs();
+    for(int i = 1; i &lt;= n1; i++) cout &lt;&lt; (depth[i] == INF) &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

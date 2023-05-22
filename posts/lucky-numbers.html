@@ -1,0 +1,111 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Lucky Numbers (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Lucky Numbers (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">11-20-2022</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> dp</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/problemset/problem/1428/G2">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets try to solve the easy version of this problem first. The condition that there must be exactly \(k\) numbers actually means that there is at most \(k\) numbers, since \(0\) counts as a number. The scores being proportional to the multiple of three means that it would always be optimal to have lucky digits than to not. Therefore, our optimal strategy will involve choosing some set of numbers that only consist of lucky digits, then completing the sum with the final number. We want to choose \(k - 1\) numbers such that their sum is fixed, and for the easy version, we can just iterate over the final number. To solve this, it seems intuitive that we would somehow want to process the digits individually. Actually, we can always break down every lucky number into some amounts of \(3 \cdot 10^x\). So if we have \(3(k - 1)\) amounts of each \(3 \cdot 10^x\) with their respective value and weight, we can do a 0/1 knapsack to figure out the maximum score with a given sum. However, this is too slow, so we can apply a trick used to optimize knapsack with many identical values. Let \(2^x\) be the largest power of \(2\) that shares a bit with the amount. Make a value for every power of \(2\) less than \(2^x\). This will allow us to reach every value in the range \([0, 2^x - 1]\). Finally, we just need an extra value for the remainder after subtracting \(2^x - 1\) from the weight. This way, every value in the range can be reached. Now how can we extend this to the hard version? Actually, we can use a similar technique. We can do an 0/1 knapsack for each digit, with each digit having options from \(0\) to \(9\). Note that the ordering of for loops matters.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#pragma GCC optimize(&quot;O3&quot;)
+#pragma GCC optimization (&quot;unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,tune=native&quot;)
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+const int MX = 1e6;
+
+int arr[6];
+
+ll find(int x){
+    ll ret = 0;
+    for(int i = 0; i &lt; 6; i++){
+        if((x%10)%3 == 0) ret += (ll)arr[i]*(x%10)/3;
+        x /= 10;
+    }
+    return ret;
+}
+
+int main(){
+    setIO();
+    int k;
+    cin &gt;&gt; k;
+    for(int i = 0; i &lt; 6; i++) cin &gt;&gt; arr[i];
+    if(k == 1){
+        int q;
+        cin &gt;&gt; q;
+        while(q--){
+            int x;
+            cin &gt;&gt; x;
+            cout &lt;&lt; find(x) &lt;&lt; endl;
+        }
+        return 0;
+    }
+    k--;
+    k *= 3;
+    int mask = 1, sz = 0;
+    while(2*mask &lt;= k) mask *= 2, sz++;
+    vector&lt;pll&gt; v;
+    int p10 = 1;
+    for(int i = 0; i &lt; 6; i++){
+        for(int j = 0; j &lt; sz; j++){
+            v.pb({(ll)arr[i]*(1 &lt;&lt; j), (ll)3*p10*(1 &lt;&lt; j)});
+        }
+        v.pb({(ll)arr[i]*(k - mask + 1), (ll)3*p10*(k - mask + 1)});
+        p10 *= 10;
+    } 
+    ll dp[MX];
+    for(int i = 0; i &lt; MX; i++) dp[i] = -LLINF;
+    dp[0] = 0;
+    for(pll j : v){
+        for(int i = MX - 1; i &gt;= 1; i--){
+            if(i &gt;= j.ss) dp[i] = max(dp[i], dp[i - j.ss] + j.ff);
+        }
+    }
+    p10 = 1;
+    for(int i = 0; i &lt; 6; i++){
+        for(int k = MX - 1; k &gt;= 1; k--){
+            for(int j = 0; j &lt;= 9; j++){
+                if(j*p10 &gt; k) continue;
+                if(j%3 == 0) dp[k] = max(dp[k], dp[k - p10*j] + (ll)arr[i]*j/3);
+                else dp[k] = max(dp[k], dp[k - p10*j]);
+            }
+        }
+        p10 *= 10;
+    }
+    int q;
+    cin &gt;&gt; q;
+    while(q--){
+        int x;
+        cin &gt;&gt; x;
+        cout &lt;&lt; dp[x] &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>

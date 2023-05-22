@@ -1,0 +1,136 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | 14th Sqrt Decomp Tech (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>14th Sqrt Decomp Tech (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">1-30-2023</div></div> <div class="tag-container"><div class="tag"><p> xyd</p></div><div class="tag"><p> mo's</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://contest.xinyoudui.com/contest/28/problem/141">Problem Link</a></p>
+<h2>Solution</h2>
+<p>This seems hard to maintain, but we can notice that there are only \(14 \choose k\) numbers with \(k\) bits, which is around \(3500\) in the worst case. Knowing this, we can now maintain the count of pairs of numbers in a set while supporting removals and deletions. This is actually the structure of Mo's algorithm, however, it is still too slow, with a complexity of \(O(N \sqrt{N} \cdot 3500)\). Optimizing these queries any other way seems hard, so lets see if we can optimize the Mo's. Our Mo's transition requires checking the number of pairs between one interval and another, with the property that the total length of transition intervals is bounded. So if we can check the number of pairs between an index and an interval fast, we can optimize our solution down to \(O(N \sqrt{N})\). We can actually process this offline by splitting each query into the pairs with a prefix instead of an interval, but now we will have \(O(N \sqrt{N})\) memory. To cut this down, notice that our transition intervals are always an interval. Thus, we dont have to store each point seperately, and we can just store the \(O(Q)\) intervals. However, this only lets us query one of the two needed prefix sums. To fix this, notice that the in every case, the prefix sum query we need is always between \(i\) and \([1, i]\). Thus, we can precompute this to get the transitions for the Mo's.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#pragma GCC optimize(&quot;O3&quot;)
+#pragma GCC optimization (&quot;unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,tune=native&quot;)
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+const int MX = 300;
+
+bool comp(pair&lt;pii, int&gt; a, pair&lt;pii, int&gt; b){
+    if(a.ff.ff/MX == b.ff.ff/MX) return a.ff.ss &lt; b.ff.ss;
+    return a.ff.ff/MX &lt; b.ff.ff/MX;
+}
+
+int cnt[1 &lt;&lt; 14 | 1];
+ll cur = 0;
+vector&lt;int&gt; v;
+
+int main(){
+    setIO();
+    int n, q, k;
+    cin &gt;&gt; n &gt;&gt; q &gt;&gt; k;
+    int arr[n + 1];
+    for(int i = 1; i &lt;= n; i++) cin &gt;&gt; arr[i];
+    arr[0] = 1 &lt;&lt; 14;
+    vector&lt;pair&lt;pii, int&gt;&gt; que;
+    for(int i = 0; i &lt; q; i++){
+        int l, r;
+        cin &gt;&gt; l &gt;&gt; r;
+        que.pb({{l, r}, i});
+    }
+    sort(que.begin(), que.end(), comp);
+    //[l, r]
+    int l = 1, r = 0;
+    //[min, max)
+    vector&lt;pair&lt;int, pii&gt;&gt; prop[n + 1];
+    for(int j = 0; j &lt; q; j++){
+        auto i = que[j];
+        if(r &lt; i.ff.ss){
+            prop[l - 1].pb({j, {r, i.ff.ss}});
+            r = i.ff.ss;
+        }
+        if(l &lt; i.ff.ff){
+            prop[r].pb({j, {i.ff.ff, l}});
+            l = i.ff.ff;
+        }
+        if(l &gt; i.ff.ff){
+            prop[r].pb({j, {i.ff.ff, l}});
+            l = i.ff.ff;
+        }
+        if(r &gt; i.ff.ss){
+            prop[l - 1].pb({j, {r, i.ff.ss}});
+            r = i.ff.ss;
+        }
+    }
+    vector&lt;int&gt; v;
+    for(int i = 0; i &lt; (1 &lt;&lt; 14); i++) if(__builtin_popcount(i) == k) v.pb(i);
+    ll add[q];
+    int same[n + 1];
+    int nxt[n + 1];
+    memset(same, 0, sizeof(same));
+    memset(nxt, 0, sizeof(nxt));
+    memset(add, 0, sizeof(add));
+    for(int i = 1; i &lt;= n; i++){
+        for(int j : v) cnt[j ^ arr[i]]++;
+        same[i] = cnt[arr[i]];
+        if(i + 1 &lt;= n) nxt[i] = cnt[arr[i + 1]];
+    }
+    memset(cnt, 0, sizeof(cnt));
+    for(int i = 0; i &lt;= n; i++){
+        if(i){
+            for(int j : v) cnt[j ^ arr[i]]++;
+        }
+        for(auto j : prop[i]){
+            if(j.ss.ff &gt; j.ss.ss){
+                for(int k = j.ss.ss; k &lt; j.ss.ff; k++){
+                    if(k &gt; i){
+                        add[j.ff] -= nxt[k] - cnt[arr[k + 1]];
+                    } else {
+                        add[j.ff] -= cnt[arr[k]] - same[k];
+                    }
+                }
+            } else {
+                for(int k = j.ss.ff; k &lt; j.ss.ss; k++){
+                    if(k &gt; i){
+                        add[j.ff] += nxt[k] - cnt[arr[k + 1]];
+                    } else {
+                        add[j.ff] += cnt[arr[k]] - same[k];
+                    }
+                } 
+            }
+        }
+    }
+    ll ans[q], cur = 0;
+    for(int i = 0; i &lt; q; i++){
+        cur += add[i];
+        ans[que[i].ss] = cur;
+    }
+    for(int i = 0; i &lt; q; i++) cout &lt;&lt; ans[i] &lt;&lt; &quot;\n&quot;;
+}
+</code></pre>
+</div> </body> </html>

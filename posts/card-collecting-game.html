@@ -1,0 +1,119 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Card Collecting Game (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Card Collecting Game (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">10-16-2022</div></div> <div class="tag-container"><div class="tag"><p> csacademy</p></div><div class="tag"><p> greedy</p></div><div class="tag"><p> dp</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://csacademy.com/contest/round-49/task/card-collecting-game/statement/">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets try to find the optimal strategy for both players while only considering \(1\) deck. We will assume that card \(i\) appears \(x_i\) times. For a card \(i\), every time it occurs \(2a_i\) times, we are guranteed to be able to get it \(a_i\) times and thus get \(v_i\) score. So, lets only consider the remainder of the of \(x_i\) after dividing by \(2a_i\). If this remainder is smaller than \(2a_i - 1\), we will never be able to get another \(a_i\) copies of this card. However, if the remainder is \(2a_i - 1\), depending on whether we go first or not, we could get another \(a_i\) copies. So, if we go first, we can win the greatest card, third greatest card, and so on. If we go second, we can win the second greatest card, fourth greatest card, and so on. Now, we have to determine a way to distribute cards into the piles optimally. The first thing to know is that \(a_1 + a_1 \cdot a_2 + (a_1 + a_2) \cdot a_3 + \ldots + (a_1 + a_2 + \ldots + a_{n - 1}) \cdot a_n\) is bounded by \((\sum a_i)^2\). Next, we only have to consider distributing at most \(4a_i - 1\) cards between the two decks, since other than those cards, card \(i\) will always contribute a fixed amount to the answer. This leads us to a dp where \(dp[i][j] = \) the answer when considering the first \(i\) cards with \(j\) cards in the first deck. Note that because of the upper bound stated previously, this is \(O(a_i^2)\). The next part of the problem is to determine whether \(dp[i][j]\) is possible to reach while distributing an even amount of cards to both decks. We can do this with another dp. If we bundle each type of card into groups of \(2a_i\), the groups can be indistinguishable, since we don't care about their value. Notice that there are only \(O(\sqrt{\sum a_i})\) distinct values. This leads us to a new dp where \(dp2[i][j] = \) if it is possible to reach \(j\) using the first \(i\) distinct values. However, transitioning is still to slow for this. To optimize, we can do another dp for each \(i\). Let \(dp3[j] = \) the maximum number of uses of the \(i\)th value we have left if we got to position \(j\). If \(x_i\) is the number of occurences of the \(i\)th distince value and \(v_i\) is its value, then \(dp3[j] = x_i\) if \(dp2[i - 1][j]\) is true, and \(dp3[j]\) can transition from \(dp3[j - v_i]\). Now transitions only take \(O(\sum q_i)\) time. Our final complexity is \(O((\sum a_i)^2 + \sqrt{\sum a_i} \cdot \sum q_i)\).</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#pragma GCC optimize(&quot;O3&quot;)
+#pragma GCC optimization (&quot;unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,tune=native&quot;)
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int main(){
+    setIO();
+    int n;
+    cin &gt;&gt; n;
+    int req[n], cnt[n], val[n];
+    int sum = 0;
+    int tot = 0;
+    int cap[n];
+    int ans = 0;
+    vector&lt;pii&gt; v;
+    for(int i = 0; i &lt; n; i++){
+        cin &gt;&gt; req[i] &gt;&gt; cnt[i] &gt;&gt; val[i]; 
+        v.pb({val[i], i});
+        req[i] *= 2;
+        int x = max(0, cnt[i] - (req[i] - 1))/req[i]*req[i];
+        cap[i] = cnt[i] - x;
+        ans += x/req[i]*val[i];
+        sum += cap[i];
+        tot += cnt[i];
+    }
+    int dp[2][sum + 1][2][2];
+    for(int i = 0; i &lt;= sum; i++) for(int j = 0; j &lt; 2; j++) dp[j][i][0][0] = dp[j][i][0][1] = dp[j][i][1][0] = dp[j][i][1][1] = -INF;
+    dp[0][0][1][0] = 0;
+    int cur = 0;
+    sort(v.rbegin(), v.rend());
+    for(pii ind : v){
+        int i = ind.ss;
+        cur += cap[i];
+        for(int j = 0; j &lt;= cur; j++){
+            for(int k = 0; k &lt;= min({j, cap[i]}); k++){
+                int a = k%req[i] == req[i] - 1;
+                int b = (cap[i] - k)%req[i] == req[i] - 1;
+                int c = k &gt;= req[i];
+                int d = cap[i] - k &gt;= req[i];
+                for(int x = 0; x &lt;= 1; x++){
+                    for(int y = 0; y &lt;= 1; y++){
+                        dp[1][j][x][y] = max(dp[1][j][x][y], dp[0][j - k][x ^ a][y ^ b] + (c || (!x &amp;&amp; a) ? val[i] : 0) + (d || (!y &amp;&amp; b) ? val[i] : 0));
+                    }
+                }
+            }
+        }
+        for(int i = 0; i &lt;= cur; i++){
+            for(int a = 0; a &lt;= 1; a++){
+                for(int b = 0; b &lt;= 1; b++){
+                    dp[0][i][a][b] = dp[1][i][a][b];
+                    dp[1][i][a][b] = -INF;
+                }
+            }
+        }
+    }
+    int vis[tot + 1];
+    memset(vis, -1, sizeof(vis));
+    vis[0] = 0;
+    map&lt;int, int&gt; m;
+    for(int i = 0; i &lt; n; i++) m[req[i]] += (cnt[i] - cap[i])/req[i];
+    cur = 0;
+    for(pii i : m){
+        for(int j = 0; j &lt;= tot; j++) if(vis[j] &gt;= 0) vis[j] = 0;
+        for(int j = i.ff; j &lt;= tot; j++){
+            if(vis[j - i.ff] != -1 &amp;&amp; vis[j - i.ff] &lt; i.ss){
+                vis[j] = (vis[j] == -1 ? vis[j - i.ff] + 1 : min(vis[j], vis[j - i.ff]) + 1);
+            }
+        }
+    }
+    int add = 0;
+    for(int i = 0; i &lt;= min(sum, tot/2); i++){
+        if(vis[tot/2 - i] &gt;= 0){
+            for(int a = 0; a &lt;= 1; a++){
+                for(int b = 0; b &lt;= 1; b++){
+                    add = max(add, dp[0][i][a][b]);
+                }
+            }
+        }
+    }
+    cout &lt;&lt; ans + add &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

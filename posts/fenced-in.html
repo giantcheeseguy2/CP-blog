@@ -1,0 +1,81 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Fenced In (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Fenced In (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">9-19-2022</div></div> <div class="tag-container"><div class="tag"><p> usaco</p></div><div class="tag"><p> mst</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="http://www.usaco.org/index.php?page=viewproblem2&amp;cpid=625">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets visualize the barn as a graph where the fences are edges. Obviously, the answer is the mst of this graph. But how can we find the mst of a graph with \(N^2\) nodes? Consider kruskal's algorithm. You always want to take the smallest edge that connects two components. Luckily or us, there are not many distinct values, so we can take an entire row or column at a time and subtract out the number of already connected components. We can represent the edges we have already taken as entire rows and columns, so we are just counting the number of intersections with some casework. Thus, we can simulate kruskal's in a reasonable time complexity.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int main(){
+    setIO();
+    freopen(&quot;fencedin.in&quot;, &quot;r&quot;, stdin);
+    freopen(&quot;fencedin.out&quot;, &quot;w&quot;, stdout);
+    int a, b, n, m;
+    cin &gt;&gt; a &gt;&gt; b &gt;&gt; n &gt;&gt; m;
+    vector&lt;int&gt; vx, vy;
+    vx.pb(0), vx.pb(a);
+    vy.pb(0), vy.pb(b);
+    for(int i = 0; i &lt; n; i++){
+        int x;
+        cin &gt;&gt; x;
+        vx.pb(x);
+    }
+    for(int i = 0; i &lt; m; i++){
+        int x;
+        cin &gt;&gt; x;
+        vy.pb(x);
+    }
+    sort(vx.begin(), vx.end());
+    sort(vy.begin(), vy.end());
+    priority_queue&lt;pii, vector&lt;pii&gt;, greater&lt;pii&gt;&gt; q;
+    for(int i = 1; i &lt; vx.size(); i++) q.push({vx[i] - vx[i - 1], 0});
+    for(int i = 1; i &lt; vy.size(); i++) q.push({vy[i] - vy[i - 1], 1});
+    ll ans = 0;
+    int cx = 0, cy = 0;
+    while(!q.empty()){
+        pii x = q.top();
+        q.pop();
+        if(x.ss == 0){
+            ans += (ll)x.ff*m;
+            if(cx) ans -= (ll)x.ff*max(0, cy - 1);
+            cx++;
+        } else {
+            ans += (ll)x.ff*n;
+            if(cy) ans -= (ll)x.ff*max(0, cx - 1);
+            cy++;
+        }
+        //cout &lt;&lt; ans &lt;&lt; endl;
+    }
+    cout &lt;&lt; ans &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

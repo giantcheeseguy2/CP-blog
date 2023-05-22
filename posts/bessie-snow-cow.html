@@ -1,0 +1,123 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Bessie's Snow Cow (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Bessie's Snow Cow (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">9-16-2022</div></div> <div class="tag-container"><div class="tag"><p> usaco</p></div><div class="tag"><p> tree</p></div><div class="tag"><p> euler tour</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="http://www.usaco.org/index.php?page=viewproblem2&amp;cpid=973">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets maintain a set of nodes that are colored with a updated with a color for every color. Every one of those nodes contributes an answer of \(1\) to every element in the subtree. To prevent overcounting, we can also subtract \(1\) for every node in an updated node's subtree, then removing them, which amortizes. Thus, we only need a euler tour and a segtree with lazy propagation to suport subtree add subtree sum.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int n, q, tim = 0;
+ll seg[400005], tag[400005];
+
+void push_down(int x, int l, int r){
+    if(!tag[x]) return;
+    int mid = (l + r)/2;
+    seg[x*2 + 1] += (mid - l + 1)*tag[x];
+    seg[x*2 + 2] += (r - mid)*tag[x];
+    tag[x*2 + 1] += tag[x];
+    tag[x*2 + 2] += tag[x];
+    tag[x] = 0;
+}
+
+void update(int l, int r, int v, int ul = 0, int ur = tim - 1, int cur = 0){
+    if(l &lt;= ul &amp;&amp; ur &lt;= r){
+        seg[cur] += (ll)v*(ur - ul + 1);
+        tag[cur] += v;
+        return;
+    }
+    push_down(cur, ul, ur);
+    int mid = (ul + ur)/2;
+    if(l &lt;= mid) update(l, r, v, ul, mid, cur*2 + 1);
+    if(r &gt; mid) update(l, r, v, mid + 1, ur, cur*2 + 2);
+    seg[cur] = seg[cur*2 + 1] + seg[cur*2 + 2];
+}
+
+ll query(int l, int r, int ul = 0, int ur = tim - 1, int cur = 0){
+    if(l &lt;= ul &amp;&amp; ur &lt;= r) return seg[cur];
+    int mid = (ul + ur)/2;
+    push_down(cur, ul, ur);
+    if(r &lt;= mid) return query(l, r, ul, mid, cur*2 + 1);
+    if(l &gt; mid) return query(l, r, mid + 1, ur, cur*2 + 2);
+    return query(l, r, ul, mid, cur*2 + 1) + query(l, r, mid + 1, ur, cur*2 + 2);
+}
+
+int in[100005], out[100005];
+int rev[100005];
+vector&lt;int&gt; g[100005];
+set&lt;pii&gt; pos[100005];
+
+void dfs(int x, int p){
+    rev[tim] = x;
+    in[x] = tim++;
+    for(int i : g[x]){
+        if(i == p) continue;
+        dfs(i, x);
+    }
+    out[x] = tim;
+}
+
+int main(){
+    setIO();
+    freopen(&quot;snowcow.in&quot;, &quot;r&quot;, stdin);
+    freopen(&quot;snowcow.out&quot;, &quot;w&quot;, stdout);
+    cin &gt;&gt; n &gt;&gt; q;
+    for(int i = 0; i &lt; n - 1; i++){
+        int a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        g[a].pb(b);
+        g[b].pb(a);
+    }
+    dfs(1, 1);
+    while(q--){
+        int t;
+        cin &gt;&gt; t;
+        if(t == 1){
+            int x, v;
+            cin &gt;&gt; x &gt;&gt; v;
+            set&lt;pii&gt;::iterator it = pos[v].upper_bound({in[x], -1});
+            if(it != pos[v].begin() &amp;&amp; (*prev(it)).ss &gt;= out[x]) continue;
+            it = pos[v].lower_bound({in[x], -1});
+            while(it != pos[v].end() &amp;&amp; (*it).ss &lt;= out[x]){
+                update((*it).ff, (*it).ss - 1, -1);
+                it = pos[v].erase(it);
+            }
+            pos[v].insert({in[x], out[x]});
+            update(in[x], out[x] - 1, 1);
+        } else {
+            int x;
+            cin &gt;&gt; x;
+            cout &lt;&lt; query(in[x], out[x] - 1) &lt;&lt; endl;
+        }
+    }
+}
+</code></pre>
+</div> </body> </html>

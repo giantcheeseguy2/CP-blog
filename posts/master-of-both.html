@@ -1,0 +1,79 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Master Of Both (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Master Of Both (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">1-3-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> trie</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/gym/104090/problem/K">Problem Link</a></p>
+<h2>Solution</h2>
+<p>To count inversions on a normal alphabet, we would just maintain a trie of all the string occurences, add strings one by one, and count the number of lexicographically greater strings as we process the string. To extend this to an arbitrary alphabet, notice that the only comparisons that matter is between two pairs of characters as we walk down the trie. In other words, if we maintain a \(cnt[i][j]\) which is the number of pairs of strings that share a prefix and the first character that differs are \(i\) and \(j\) respectively. This allows us to count the number of inversions for any given alphabet as long as we loop over the ordered pairs of characters. Note the case where a string is a prefix of another.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#pragma GCC optimize(&quot;O3&quot;)
+#pragma GCC optimization (&quot;unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,tune=native&quot;)
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int g[1000005][26], sz = 1;
+int sub[1000005];
+ll cnt[26][26];
+
+int main(){
+    setIO();
+    int n, q;
+    cin &gt;&gt; n &gt;&gt; q;
+    ll add = 0;
+    for(int i = 0; i &lt; n; i++){
+        string s;
+        cin &gt;&gt; s;
+        int cur = 0;
+        for(int j = 0; j &lt; s.length(); j++){
+            for(int k = 0; k &lt; 26; k++){
+                if(k != s[j] - 'a'){
+                    cnt[k][s[j] - 'a'] += sub[g[cur][k]];
+                }
+            }
+            cur = (g[cur][s[j] - 'a'] ? g[cur][s[j] - 'a'] : g[cur][s[j] - 'a'] = sz++);
+            sub[cur]++;
+        }
+        for(int j = 0; j &lt; 26; j++) add += sub[g[cur][j]];
+    }
+    while(q--){
+        string s;
+        cin &gt;&gt; s;
+        ll ans = add;
+        for(int j = 0; j &lt; 26; j++){
+            for(int k = j + 1; k &lt; 26; k++){
+                ans += cnt[s[k] - 'a'][s[j] - 'a'];
+            }
+        }
+        cout &lt;&lt; ans &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>
