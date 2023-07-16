@@ -1,0 +1,87 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Lower Bound Queries (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Lower Bound Queries (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">6-4-2023</div></div> <div class="tag-container"><div class="tag"><p> probgate</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://probgate.org/viewproblem.php?pid=1618">Problem Link</a></p>
+<h2>Solution</h2>
+<p>First, lets determine how to evaluate the summation in reasonable time. We can notice that the lower_bound function is monotically decreasing and only indeces that are a prefix min starting from the query point will contribute to the answer. Now, we can notice how much each index will contribute to the answer. If the next greater value after \(a_i\) is \(v\), then we can add \(i \cdot (v - a_i)\) to the answer, since that is how long \(i\) will be the lowest lower bound. Consider what happens if we already have a given set of prefix mins and we are adding an additional value to the left. There are two cases: the new value is grater or the new value is smaller. If the new value is greater than we can just add it without issue. In the other case, although it is intuitive to just remove elements until the new value is no longer greater, this doesn't go anywhere, so instead of directly remove elements, lets see if we can update the answer without doing so. Lets say we are adding the value \(a_i\), and the next element that is smaller than \(a_i\) is \(a_j\). We want to remove the contribution of all the elements between \(i\) and \(j\) and add \((a_i - a_j) \cdot j\) to the answer. All the contribution of elements after \(j\) will remain unchanged. We can do this with the idea of walking on segtree. If the minimum of the left child is larger than the new value, then we can just ignore everything in that interval and walk to the right child. Otherwise, we can walk into the left child and the right child's contribution remains unchanged. We will keep walking until we find the correct \(a_j\), then add its new contribution to the answer. Thus, with this process, we can maintain everything on a segtree. Each node will store the minimum of its interval as well as its contribution if it is merged with its sibling on the left. By knowing these values, we can determine the answer after adding an arbitrary value to the left of an interval in \(log N\) time. Since we know the base case answer of these values, the answer after adding a value to the left can be computed as we build or update the segtree in \(log^2 N\). Now, when querying, it just comes down to determining the answer after adding a value to the left for each relevant node, and adding the value of \(t + 1\) to beginning.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &quot;lb.hpp&quot;
+#include &lt;bits/stdc++.h&gt;
+using namespace std;
+ 
+#define pb push_back
+#define ff first
+#define ss second
+ 
+typedef long long ll;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+ 
+const int MOD = 1e9 + 7;
+const int INF = 1e9;
+ 
+ll arr[500005], n;
+ll mn[2000005];
+ll seg[2000005];
+ 
+//finds answer for a node, with a given starting value
+ll nxt(int cur, ll v, int l, int r){
+    if(v &lt; mn[cur]) return 0;
+    if(l == r) return (v - mn[cur])*l;
+    int mid = (l + r)/2;
+    if(mn[cur*2 + 1] &lt; v) return nxt(cur*2 + 1, v, l, mid) + seg[cur*2 + 2];
+    else return nxt(cur*2 + 2, v, mid + 1, r);
+}
+ 
+void build(int l = 0, int r = n, int cur = 0){
+    if(l == r){
+        mn[cur] = arr[l];
+        return;
+    }
+    int mid = (l + r)/2;
+    build(l, mid, cur*2 + 1);
+    build(mid + 1, r, cur*2 + 2);
+    mn[cur] = min(mn[cur*2 + 1], mn[cur*2 + 2]);
+    seg[cur*2 + 2] = nxt(cur*2 + 2, mn[cur*2 + 1], mid + 1, r); 
+}
+ 
+void upd(int x, ll v, int l = 0, int r = n, int cur = 0){
+    if(l == r){
+        mn[cur] = v;
+        return;
+    }
+    int mid = (l + r)/2;
+    if(x &lt;= mid) upd(x, v, l, mid, cur*2 + 1);
+    else upd(x, v, mid + 1, r, cur*2 + 2);
+    mn[cur] = min(mn[cur*2 + 1], mn[cur*2 + 2]);
+    seg[cur*2 + 2] = nxt(cur*2 + 2, mn[cur*2 + 1], mid + 1, r); 
+}
+ 
+pll que(int x, ll v, int l = 0, int r = n, int cur = 0){
+    if(x &lt;= l){
+        //cout &lt;&lt; l &lt;&lt; &quot; &quot; &lt;&lt; r &lt;&lt; &quot; &quot; &lt;&lt; nxt(cur, v, l, r) &lt;&lt; endl;
+        return {mn[cur], nxt(cur, v, l, r)};
+    }
+    int mid = (l + r)/2;
+    if(x &gt; mid) return que(x, v, mid + 1, r, cur*2 + 2);
+    pll a = que(x, v, l, mid, cur*2 + 1);
+    pll b = que(x, min(v, a.ff), mid + 1, r, cur*2 + 2);
+    return {min(a.ff, b.ff), a.ss + b.ss};
+}
+ 
+void init(vector&lt;int&gt; f_){
+    n = f_.size();
+    for(int i = 0; i &lt; n; i++) arr[i] = f_[i];
+    arr[n] = 1;
+    build();
+}
+ 
+void update(int i, int t){
+    upd(i, t);
+}
+ 
+int64_t query(int i, int t){
+    return que(i, t + 1).ss;
+}
+</code></pre>
+</div> </body> </html>

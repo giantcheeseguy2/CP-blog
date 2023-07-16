@@ -1,0 +1,152 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Strongly Connected Cattle (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Strongly Connected Cattle (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">6-5-2023</div></div> <div class="tag-container"><div class="tag"><p> probgate</p></div><div class="tag"><p> divide and conquer</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://probgate.org/viewproblem.php?pid=1662">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Draw out what happens when we start with a single node and begin adding edges to the next node one by one. We are given a directed line that loops back onto itself. We can immediately see that there a cycle is created when a node appears twice in the interval, and all nodes between the first and last occurence are in that same cycle. We can also see that when two cycles intersect, they become a bigger cycle. Thus, the problem is equivalent to, given some intervals, count the number of components of intervals that cannot reach another through some other intervals. Lets try to apply divide and conquer to solve these queries. For each interval, we will process all the queries that go throug the midpoint of that interval. Notice that there are two cases for these queries. Either none of the intervals in the query intersect the middle, thus allowing us to process the left side and right side of the queries seperately. To solve this, notice that each component will always be a continuous interval, so we can assign each component an id starting from 0 increasing from left to right. Merging intervals after adding a new elemnt is then just jumping back until we reach the previous occurence of that element. This can be done using dsu. For the second case, there is some interval that intersects the midpoint. In this case, as long as we know the range of the interval that covers the middle (there will only be one), we can just subtract out the number of extra intervals found in the first case, since while sweeping from left to right, we will know the number of intervals between \([i, r]\) while considering the set of intervals of \[mid, r]\), as this is just the difference of the ids of the component of \(i\) and the component of \(r\). Thus, as long as we can find the endpoints of the interval that crosses the middle, everything else is solved. We want to find the rightmost position that an element from the right of mid appears before \(l\) on the left of mid. We can activate elements as we go to the first position it occured to the left of the middle, then use a segtree or set to see if it occurs within the query interval. This can be done mirrored on the left side as well, and will get the answer.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#include &lt;bits/stdc++.h&gt;
+using namespace std;
+ 
+#define pb push_back
+#define ff first
+#define ss second
+ 
+typedef long long ll;
+typedef pair&lt;int, int&gt; pii;
+ 
+void setIO() {
+    cin.tie() -&gt; sync_with_stdio(0);
+}
+ 
+const int INF = 1e9;
+ 
+int ans[500005];
+vector&lt;int&gt; st[500005];
+vector&lt;pii&gt; ins[500005];
+int in[500005];
+int arr[500005];
+int par[500005];
+int prv[500005];
+int val[500005];
+int jump[500005];
+int n, q;
+ 
+int find(int x){
+    if(x == par[x]) return x;
+    return par[x] = find(par[x]);
+}
+ 
+int segmx[2000005];
+ 
+void upd(int x, int v, int l = 1, int r = n, int cur = 0){
+    if(l == r){
+        segmx[cur] = v;
+        return;
+    }
+    int mid = (l + r)/2;
+    if(x &lt;= mid) upd(x, v, l, mid, cur*2 + 1);
+    else upd(x, v, mid + 1, r, cur*2 + 2);
+    segmx[cur] = max(segmx[cur*2 + 1], segmx[cur*2 + 2]);
+}
+ 
+int quer(int l, int r, int ul = 1, int ur = n, int cur = 0){
+    if(l &lt;= ul &amp;&amp; ur &lt;= r) return segmx[cur];
+    if(r &lt; ul || l &gt; ur) return -INF;
+    int mid = (ul + ur)/2;
+    return max(quer(l, r, ul, mid, cur*2 + 1), quer(l, r, mid + 1, ur, cur*2 + 2));
+}
+ 
+int sto[500005];
+ 
+void dnq(int l, int r, vector&lt;pair&lt;pii, int&gt;&gt; que){
+    if(l == r){
+        for(auto i : que){
+            ans[i.ss] = 1;
+        }
+        return;
+    }
+    if(que.size() == 0) return;
+    int mid = (l + r)/2;
+    vector&lt;pair&lt;pii, int&gt;&gt; v1, v2;
+    for(auto i : que){
+        if(i.ff.ss &lt;= mid) v1.pb(i);
+        else if(i.ff.ff &gt; mid) v2.pb(i);
+        else {
+            ins[i.ff.ss].pb({i.ff.ff, i.ss});
+            ins[i.ff.ff].pb({i.ff.ss, i.ss});
+        }
+    }
+    for(int i = mid + 1; i &lt;= r; i++) prv[arr[i]] = -1, in[arr[i]] = 0;
+    for(int i = l; i &lt;= mid; i++) in[arr[i]] = i, upd(i, 0);
+    for(int i = mid + 1; i &lt;= r; i++){
+        par[i] = i;
+        val[i] = (i == mid + 1 ? 1 : val[find(i - 1)] + 1);
+        if(prv[arr[i]] == -1){
+            prv[arr[i]] = i;
+        }
+        if(in[arr[i]]){
+            upd(in[arr[i]], i);
+        }
+        int cur = i;
+        while(cur &gt; prv[arr[i]]){
+            par[find(cur)] = find(cur - 1);
+            cur = find(cur);
+        }
+        for(pii j : ins[i]){
+            int mx = quer(j.ff, mid);
+            if(mx == 0){
+                ans[j.ss] += val[find(i)];
+            } else {
+                ans[j.ss] += val[find(i)] - val[find(mx)];
+            }
+        }
+        ins[i].clear();
+    }
+    for(int i = mid; i &gt;= l; i--) prv[arr[i]] = -1, in[arr[i]] = 0;
+    for(int i = r; i &gt;= mid + 1; i--) in[arr[i]] = i, upd(i, -INF);
+    for(int i = mid; i &gt;= l; i--){
+        par[i] = i;
+        val[i] = (i == mid ? 1 : val[find(i + 1)] + 1);
+        if(prv[arr[i]] == -1){
+            prv[arr[i]] = i;
+        }
+        if(in[arr[i]]){
+            upd(in[arr[i]], -i);
+        }
+        int cur = i;
+        while(cur &lt; prv[arr[i]]){
+            par[find(cur)] = find(cur + 1);
+            cur = find(cur);
+        }
+        for(pii j : ins[i]){
+            int mx = quer(mid + 1, j.ff);
+            if(mx == -INF){
+                ans[j.ss] += val[find(i)];
+            } else {
+                ans[j.ss] += val[find(i)] - val[find(-mx)] + 1;
+            }
+        }
+        ins[i].clear();
+    }
+    dnq(l, mid, move(v1));
+    dnq(mid + 1, r, move(v2));
+}
+ 
+int main(){
+    setIO();
+    cin &gt;&gt; n &gt;&gt; q;
+    for(int i = 1; i &lt;= n; i++) cin &gt;&gt; arr[i];
+    vector&lt;pair&lt;pii, int&gt;&gt; v;
+    for(int i = 0; i &lt; q; i++){
+        int a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        v.pb({{a, b}, i});
+    }
+    dnq(1, n, move(v));
+    for(int i = 0; i &lt; q; i++) cout &lt;&lt; ans[i] &lt;&lt; &quot;\n&quot;;
+}
+</code></pre>
+</div> </body> </html>

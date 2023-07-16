@@ -1,0 +1,54 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Rearrange Brackets (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Rearrange Brackets (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">6-5-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> tree</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1821/problem/E">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Obviously, we want to greedily remove the rightmost bracket pair when possible and continue that process. However, there is no easy way to count this directly when maintaining swaps. Instead, since we are swapping individual brackets, lets look at the contribution of each bracket to the answer instead. For each ) bracket, we know that it will contribute \(1\) to the cost of every ) bracket that is between it and its ( pair. So, for each ), we can add the number of ) between it and its ( pair to the answer. Now, lets look at what the swap operation does. We can notice that we will only ever want to move ( brackets to the right or ) brackets to the left. Otherwise, we would be extending the distance between the () pairs, thus only increasing the answer. Now, how should we move these brackets optimally? In any move, it is always optimal to move each ) or ( adjacent to its corresponding pair, since this will remove that bracket's contribution to the answer. Also, it is always optimaal to remove the outermoust () pair for any sequence, since any move within the () pair will always be doable by the () pair (this can be seen through some casework). Furthermore, for every outermost () pair, we always want to completely remove the )'s contribution to the answer by moving the ) to its correspoding (, since moving it past the ) will break the bracket sequence thus requiring another move to fix which will always be suboptimal. Furthermore, not moving it next to the ( will not only not remove its entire contribution but also add more contribution for a different ). Thus, it is always optimal to move the ) to its corresponding ( for the outermost bracket pair of a group. We can repeatedly do this k times for \(O(N \cdot K)\) or simply subtract the k ) with largest contribution from the answer. This is because moving a ) optimally will not change the contribution of any other ), so we can just continually move other )'s.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">//#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#include &lt;bits/stdc++.h&gt;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef pair&lt;int, int&gt; pii;
+
+void setIO(){
+    cin.tie(0) -&gt; sync_with_stdio(0);
+}
+
+int main(){
+    setIO();
+    int t;
+    cin &gt;&gt; t;
+    for(int tt = 1; tt &lt;= t; tt++){
+        int k, n;
+        cin &gt;&gt; k;
+        string s;
+        cin &gt;&gt; s;
+        n = s.size();
+        int par[n + 1];
+        memset(par, -1, sizeof(par));
+        vector&lt;int&gt; rt;
+        vector&lt;int&gt; v;
+        vector&lt;int&gt; cur;
+        for(int i = 1; i &lt;= n; i++){
+            if(s[i - 1] == '(') cur.pb(i);
+            else {
+                v.pb((i - cur.back() + 1)/2);
+                cur.pop_back();
+            }
+        }
+        ll sum = 0;
+        for(int i : v) sum += i - 1;
+        sort(v.rbegin(), v.rend());
+        for(int i = 0; i &lt; min(k, (int)v.size()); i++) sum -= v[i] - 1;
+        cout &lt;&lt; sum &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>

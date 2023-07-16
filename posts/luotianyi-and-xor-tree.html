@@ -1,0 +1,97 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | LuoTianyi And Xor Tree (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>LuoTianyi And Xor Tree (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">6-5-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> tree</p></div><div class="tag"><p> dp</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1824/problem/C">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Consider a naive dp solution for solving this problem, where \(dp[i][j] = \) the minimum number of move to set all leaves in the subtree of \(i\) to \(0\). Then, \(dp[i][j] = \sum min(dp[k][j], dp[k][l] + 1)\), where \(k\) is a child of \(i\). To optimize this, we can realize that there only two possible values for \(dp[i][j]\), either the minimum or the minimum plus 1, since it will always take at most one move from the minimum to get to any other value. Thus, if we can somehow maintain the set of all \(j\) with minimal value, the problem will be solved. Assuming that we know all the information for the children, how can we compute the parent? Looking at the dp transitions, we see that the new cost to get value \(i\) on a the node will be \(\sum min values of children + number of children - number of times i appears in the set of minimum values in the children\). The first two parts are easy to compute, but we still have to find the number of times \(i\) appears in the set of minimum values in the children. Lets say that we know the set of minimum values for each node. When computing a parent node, we want to count the number of these occurences, merge these sets into one, then remove all the values that do not occur the most amount of times. We cannot actually do this with normal small to large merging, since there is no effective way to swap the maps of occurences for each value and remove all elements that do not occur maximally after the fact. However, we can actually merge all the light children into one group, then merge that group with the heavy child. It is easy to see that this maintains the correct complexity by looking at which nodes get merged during the small to large process. So, lets store a map of occurences for each of the light children, then manually go through that map while removing anything that is not the maximum. This now runs in the correct complexity.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#include &lt;bits/stdc++.h&gt;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef pair&lt;int, int&gt; pii;
+
+const int INF = 1e9;
+
+void setIO(){
+    cin.tie(0) -&gt; sync_with_stdio(0);
+}
+
+vector&lt;int&gt; g[100005];
+int arr[100005];
+int mn[100005];
+set&lt;int&gt; s[100005];
+int mx[100005];
+
+void dfs(int x, int p = 0){
+    if(p) g[x].erase(find(g[x].begin(), g[x].end(), p));
+    arr[x] ^= arr[p];
+    if(g[x].size() == 0){
+        s[x].insert(arr[x]);
+        mx[x] = 1;
+        //cout &lt;&lt; x &lt;&lt; &quot; &quot; &lt;&lt; arr[x] &lt;&lt; endl;
+        return;
+    }
+    pii nxt = {0, 0};
+    for(int i : g[x]){
+        if(i == p) continue;
+        dfs(i, x);
+        mn[x] += mn[i];
+        nxt = max(nxt, {s[i].size(), i});
+    }
+    map&lt;int, int&gt; adj;
+    for(int i : g[x]){
+        if(i == p) continue;
+        if(i == nxt.ss) continue;
+        for(int j : s[i]){
+            adj[j]++;
+        }
+    }
+    swap(s[x], s[nxt.ss]);
+    swap(mx[x], mx[nxt.ss]);
+    set&lt;int&gt; nw;
+    bool done = false;
+    for(pii i : adj){
+        //cout &lt;&lt; i.ff &lt;&lt; &quot; &quot; &lt;&lt; i.ss &lt;&lt; endl;
+        int v = i.ss + (s[x].find(i.ff) != s[x].end());
+        if(v == mx[x]){
+            if(done) nw.insert(i.ff);
+            else s[x].insert(i.ff);
+        } else if(v &gt; mx[x]){
+            done = true;
+            mx[x] = v;
+            nw.clear();
+            nw.insert(i.ff);
+        }
+    }
+    if(nw.size()) swap(nw, s[x]);
+    mn[x] += g[x].size() - mx[x];
+    mx[x] = 1;
+    //cout &lt;&lt; &quot;e &quot; &lt;&lt; x &lt;&lt; &quot; &quot; &lt;&lt; mn[x] &lt;&lt; &quot; &quot; &lt;&lt; mx[x];
+    //cout &lt;&lt; &quot;, &quot;;
+    //for(int i : s[x]) cout &lt;&lt; i &lt;&lt; &quot; &quot;;
+    //cout &lt;&lt; endl;
+}
+
+int main(){
+    setIO();
+    int n;
+    cin &gt;&gt; n;
+    for(int i = 1; i &lt;= n; i++) cin &gt;&gt; arr[i];
+    for(int i = 0; i &lt; n - 1; i++){
+        int a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        g[a].pb(b);
+        g[b].pb(a);
+    }
+    dfs(1);
+    cout &lt;&lt; mn[1] + (s[1].find(0) == s[1].end()) &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

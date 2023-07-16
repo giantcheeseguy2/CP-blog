@@ -1,0 +1,78 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Optimal Navigation (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Optimal Navigation (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">6-5-2023</div></div> <div class="tag-container"><div class="tag"><p> probgate</p></div><div class="tag"><p> math</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://probgate.org/viewproblem.php?pid=1410">Problem Link</a></p>
+<h2>Solution</h2>
+<p>We can notice that accelerating once at time \(i\) is equivalent to adding a distance of \(T - i\) to the position. This is equivalent to checking if \(X\) and \(Y\) can be made with elements from \(1\) to \(T\). Using this, we can find the answer for any small \(X\) and \(Y\) by iterating over \(T\) and using a dp to check the if it is possible. Now, as for most constant input problems, we can try printing a table of the answers and see if it helps. Turns out, aside from a few edge cases, the answer will always
+where \(T\) is the time it will take to reach the end. However, doing anything with this is hard without knowing \(T\), so we should first try to solve for it. As for most constant input problems, by printing out a table using a dp derived from brute forcing \(T\) and checking if \(X\) and \(Y\) can be made using , we can see a pattern with the answer. Aside from a few edge cases, the answer for the most part will be the smalest \(T\) such that \(T \cdot (T + 1) \ge X + Y\). By hardcoding the edgecases, we can evaluate the answer in \(log N\) time by binary searching over \(T\). Now, for a given, \((X, Y)\) we can find the answer for it in \(log N\) time. For the construction, we know that the total sum of \(T\) is bounded, so we can actually start from \((X, Y)\) and brute force our way to \((0, 0)\) by always taking the one of the 5 possible moves that is consistent with the answer at \((X, Y)\), which can be found by brute force and checking the answer for each position after the move. Moves are equivalent to adding or subtracting \(i\) from the current position.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+using namespace std;
+ 
+#define pb push_back
+#define ff first
+#define ss second
+ 
+typedef long long ll;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+ 
+const int MOD = 1e9 + 7;
+const int INF = 1e9;
+ 
+void setIO(){
+    cin.tie(0) -&gt; sync_with_stdio(0);
+}
+
+int check(int x, int y){
+    if(x == 1 &amp;&amp; y == 1) return 4;
+    if(x == 2 &amp;&amp; y == 2) return 5;
+    x = abs(x), y = abs(y);
+    int l = 0, r = x + y;
+    while(l &lt; r){
+        int mid = (l + r)/2;
+        if((ll)mid*(mid + 1)/2 &gt;= x + y) r = mid;
+        else l = mid + 1;
+    }
+    int sum = l*(l + 1)/2;
+    if(x + y == sum - 1){
+        if(x == 1 || y == 1) return l + 1;
+        else return l;
+    }
+    if(x + y == sum - 2){
+        if(x == 2 || y == 2) return l + 1;
+        else return l;
+    }
+    return l;
+}
+
+int moves[4][2] ={{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+
+int main(){
+    setIO();
+    int n;
+    cin &gt;&gt; n;
+    for(int i = 0; i &lt; n; i++){
+        int x, y;
+        cin &gt;&gt; x &gt;&gt; y;
+        int c1 = (x &gt; 0 ? 1 : -1);
+        int c2 = (y &gt; 0 ? 1 : -1);
+        int cur = check(x, y);
+        cout &lt;&lt; cur &lt;&lt; endl;
+        for(int i = cur; i &gt;= 1; i--){
+            bool found = false;
+            for(int j = 0; j &lt; 4; j++){
+                int nx = x + i*moves[j][0], ny = y + i*moves[j][1];
+                if(check(nx, ny) &lt; i){
+                    x += i*moves[j][0], y += i*moves[j][1];
+                    cout &lt;&lt; -moves[j][0] &lt;&lt; &quot; &quot; &lt;&lt; -moves[j][1] &lt;&lt; endl;
+                    found = true;
+                    break;
+                }
+            }
+            if(!found) cout &lt;&lt; &quot;0 0&quot; &lt;&lt; endl;
+        }
+    }
+}
+</code></pre>
+</div> </body> </html>

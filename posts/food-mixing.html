@@ -1,0 +1,271 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Food Mixing (Tutorial)</title> </head> <body style="margin:0;"> <div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Food Mixing (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">6-5-2023</div></div> <div class="tag-container"><div class="tag"><p> kattis</p></div><div class="tag"><p> convex hull</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codesprintla23.kattis.com/problems/codesprintla23.foodmixing">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Representing this problem in equation form doesn't go anywhere, so lets see if we can look at the problem from a different angle. We are given \(N\) pairs of values, so it may be intuitive to look at each pair as a point in 2d space. It may also be intuitive that we should be able to make any pair of values within the convex hull of these points. We can also arrive at this conclusion by looking at what set of values we can make using the base case of two elements. Turns out, this is just the line between the two elements when plotted on a 2d plane. Looking at a set of points, we can see that we can make any point on the border of the convex hull with the two element case, then make any point on the line between any other point on the border of the convex hull once again with the two element case. This works since once we have created a point using the two element case, we can think of those two elements as a single element now, and it is easy to see that modifying the contribution of those two points as a single point will allow us to continue applying the two element case. Thus, we have shown that we can make every point within the convex hull, however this doesn't give a construction. For a construction, we can realize that every point within the convex hull can be enclosed using only three points, so by finding the closest line to a point and then iterating over the third, we have the three points necessary for constructing a solution. We can apply gaussian elimination to solve how much of each point we need to retrieve the answer.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+using namespace std;
+
+#define sz(x) ((int)(x.size()))
+#define all(x) x.begin(), x.end()
+#define pb push_back
+#define eb emplace_back
+#define kill(x, s) {if(x){ cout &lt;&lt; s &lt;&lt; &quot;\n&quot;; return ; }}
+
+#ifndef LOCAL
+#define cerr while(0) cerr
+#endif
+
+using ll = long long;
+using lb = long double;
+
+const lb eps = 1e-9;
+const ll mod = 1e9 + 7, ll_max = 1e18;
+//const ll mod = (1 &lt;&lt; (23)) * 119 +1, ll_max = 1e18;
+const int MX = 2e5 +10, int_max = 0x3f3f3f3f;
+
+struct {
+  template&lt;class T&gt;
+  operator T() {
+    T x; std::cin &gt;&gt; x; return x;
+  }
+} in;
+
+using namespace std;
+#define vi vector&lt;int&gt;
+#define rep(i,a,b) for(int i = a; i&lt;b; i++)
+template &lt;class T&gt; int sgn(T x) { return (x &gt; 0) - (x &lt; 0); }
+template&lt;class T&gt;
+struct Point {
+	typedef Point P;
+	T x, y;
+	explicit Point(T x=0, T y=0) : x(x), y(y) {}
+	bool operator&lt;(P p) const { return tie(x,y) &lt; tie(p.x,p.y); }
+	bool operator==(P p) const { return tie(x,y)==tie(p.x,p.y); }
+	P operator+(P p) const { return P(x+p.x, y+p.y); }
+	P operator-(P p) const { return P(x-p.x, y-p.y); }
+	P operator*(T d) const { return P(x*d, y*d); }
+	P operator/(T d) const { return P(x/d, y/d); }
+	T dot(P p) const { return x*p.x + y*p.y; }
+	T cross(P p) const { return x*p.y - y*p.x; }
+	T cross(P a, P b) const { return (a-*this).cross(b-*this); }
+	T dist2() const { return x*x + y*y; }
+	double dist() const { return sqrt((double)dist2()); }
+	// angle to x-axis in interval [-pi, pi]
+	double angle() const { return atan2(y, x); }
+	P unit() const { return *this/dist(); } // makes dist()=1
+	P perp() const { return P(-y, x); } // rotates +90 degrees
+	P normal() const { return perp().unit(); }
+	// returns point rotated 'a' radians ccw around the origin
+	P rotate(double a) const {
+		return P(x*cos(a)-y*sin(a),x*sin(a)+y*cos(a)); }
+	friend ostream&amp; operator&lt;&lt;(ostream&amp; os, P p) {
+		return os &lt;&lt; &quot;(&quot; &lt;&lt; p.x &lt;&lt; &quot;,&quot; &lt;&lt; p.y &lt;&lt; &quot;)&quot;; }
+};
+
+typedef Point&lt;double&gt; P;
+	vector&lt;P&gt; convexHull(vector&lt;P&gt; pts) {
+	if (sz(pts) &lt;= 1) return pts;
+	sort(all(pts));
+	vector&lt;P&gt; h(sz(pts)+1);
+	int s = 0, t = 0;
+	for (int it = 2; it--; s = --t, reverse(all(pts)))
+		for (P p : pts) {
+			while (t &gt;= s + 2 &amp;&amp; h[t-2].cross(h[t-1], p) &lt;= 0) t--;
+			h[t++] = p;
+		}
+	return {h.begin(), h.begin() + t - (t == 2 &amp;&amp; h[0] == h[1])};
+}
+double segDist(P&amp; s, P&amp; e, P&amp; p) {
+	if (s==e) return (p-s).dist();
+	auto d = (e-s).dist2(), t = min(d,max(.0,(p-s).dot(e-s)));
+	return ((p-s)*d-(e-s)*t).dist()/d;
+}
+template&lt;class P&gt; bool onSegment(P s, P e, P p) {
+	return p.cross(s, e) == 0 &amp;&amp; (s - p).dot(e - p) &lt;= 0;
+}
+template&lt;class P&gt;
+bool inPolygon(vector&lt;P&gt; &amp;p, P a, bool strict = true) {
+	int cnt = 0, n = sz(p);
+	rep(i,0,n) {
+		P q = p[(i + 1) % n];
+		if (onSegment(p[i], q, a)) return !strict;
+		//if (segDist(p[i], q, a) &lt;= eps) return !strict;
+		cnt ^= ((a.y&lt;p[i].y) - (a.y&lt;q.y)) * a.cross(p[i], q) &gt; 0;
+	}
+	return cnt;
+}
+
+#define pb push_back
+#define ff first
+#define ss second
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;long double, long double&gt; pld;
+typedef long double ld;
+
+int n;
+pii arr[100005];
+ld tmp[100005];
+pii tarval;
+int N;
+
+void solve(int i1, int i2, int i3){
+    ld mat[3][4];
+    mat[0][0] = arr[i1].ff;
+    mat[0][1] = arr[i2].ff;
+    mat[0][2] = arr[i3].ff;
+    mat[0][3] = tarval.ff;
+    mat[1][0] = arr[i1].ss;
+    mat[1][1] = arr[i2].ss;
+    mat[1][2] = arr[i3].ss;
+    mat[1][3] = tarval.ss;
+    mat[2][0] = 1;
+    mat[2][1] = 1;
+    mat[2][2] = 1;
+    mat[2][3] = 1;
+    for(int i = 0; i &lt; 3; i++){
+        int ind = i;
+        for(int j = i + 1; j &lt; 3; j++) if(abs(mat[j][i]) &gt; eps) ind = j;
+        if(i != ind) for(int j = 0; j &lt;= 3; j++) swap(mat[i][j], mat[ind][j]);
+        if(abs(mat[i][i]) &lt; eps) continue;
+        for(int j = i + 1; j &lt; 3; j++){
+            ld x = mat[j][i]/mat[i][i];
+            for(int k = i + 1; k &lt;= 3; k++) mat[j][k] -= mat[i][k]*x;
+            mat[j][i] = 0;
+        }
+    }
+    ld ans[3];
+    for(int i = 2; i &gt;= 0; i--){
+        if(abs(mat[i][i]) &lt; eps){
+            ans[i] = 0;
+            continue;
+        }
+        ans[i] = mat[i][3];
+        for(int j = i + 1; j &lt; 3; j++) ans[i] -= mat[i][j]*ans[j];
+        ans[i] /= mat[i][i];
+    }
+    tmp[i1] = ans[0];
+    tmp[i2] = ans[1];
+    tmp[i3] = ans[2];
+    assert(ans[0] &gt; -eps &amp;&amp; ans[1] &gt; -eps &amp;&amp; ans[2] &gt; -eps);
+    assert(abs(ans[0]*arr[i1].ff + ans[1]*arr[i2].ff + ans[2]*arr[i3].ff - tarval.ff) &lt;= 1e-6);
+    assert(abs(ans[0]*arr[i1].ss + ans[1]*arr[i2].ss + ans[2]*arr[i3].ss - tarval.ss) &lt;= 1e-6);
+    assert(abs(ans[0] + ans[1] + ans[2] - 1) &lt;= 1e-6);
+    //cout &lt;&lt; fixed &lt;&lt; setprecision(7) &lt;&lt; ans[0]*arr[i1].ff + ans[1]*arr[i2].ff + ans[2]*arr[i3].ff &lt;&lt; &quot; &quot; &lt;&lt; ans[0]*arr[i1].ss + ans[1]*arr[i2].ss + ans[2]*arr[i3].ss &lt;&lt; endl;
+    //cout &lt;&lt; ans[0] + ans[1] + ans[2] &lt;&lt; endl;
+    //cout &lt;&lt; n &lt;&lt; endl;
+    cout &lt;&lt; &quot;Yes&quot; &lt;&lt; endl;
+    for(int i = 1; i &lt;= n; i++) cout &lt;&lt; fixed &lt;&lt; setprecision(9) &lt;&lt; abs(tmp[i]) &lt;&lt; &quot; &quot;;
+    cout &lt;&lt; endl;
+}
+
+void solve(){
+    //freopen(&quot;out.txt&quot;, &quot;w&quot;, stdout);
+	cin &gt;&gt; n;
+	vector&lt;P&gt; pts;
+	map&lt;P, int&gt; mp;
+    vector&lt;int&gt; xx(n);
+    vector&lt;int&gt; yy(n);
+	for(int&amp; x : xx) cin &gt;&gt; x;
+	for(int&amp; y : yy) cin &gt;&gt; y;
+	for(int i = 0; i&lt;n; i++){
+		int a = xx[i], b = yy[i];
+		pts.push_back(P(a, b));
+        arr[i + 1] = {a, b};
+		mp[P(a, b)] = i+1;
+	}
+	auto ch = convexHull(pts);
+	int sx, sy; cin &gt;&gt; sx &gt;&gt; sy;
+    tarval = {sx, sy};
+	P tar = P(sx, sy);
+    int N = ch.size();
+    if(N &lt;= 2 &amp;&amp; inPolygon(ch, tar, false)){
+        if(N == 1){
+            assert(sx == xx[0] &amp;&amp; sy == yy[0]);
+            cout &lt;&lt; &quot;Yes&quot; &lt;&lt; endl;
+            cout &lt;&lt; 1 &lt;&lt; &quot; &quot;;
+            for(int i = 2; i &lt;= n; i++) cout &lt;&lt; 0 &lt;&lt; &quot; &quot;;
+            cout &lt;&lt; endl;
+            return;
+        } else {
+            ld mat[3][3];
+            int i1 = mp[ch[0]], i2 = mp[ch[1]];
+            mat[0][0] = arr[i1].ff;
+            mat[0][1] = arr[i2].ff;
+            mat[0][2] = tarval.ff;
+            mat[1][0] = arr[i1].ss;
+            mat[1][1] = arr[i2].ss;
+            mat[1][2] = tarval.ss;
+            mat[2][0] = 1;
+            mat[2][1] = 1;
+            mat[2][2] = 1; 
+            for(int i = 0; i &lt; 3; i++){
+                int ind = i;
+                for(int j = i + 1; j &lt; 3; j++) if(abs(mat[j][i]) &gt; eps) ind = j;
+                if(i != ind) for(int j = 0; j &lt;= 2; j++) swap(mat[i][j], mat[ind][j]);
+                for(int j = i + 1; j &lt; 3; j++){
+                    ld x = mat[j][i]/mat[i][i];
+                    for(int k = i + 1; k &lt;= 2; k++) mat[j][k] -= mat[i][k]*x;
+                    mat[j][i] = 0;
+                }
+            }
+            ld ans[2];
+            for(int i = 1; i &gt;= 0; i--){
+                if(abs(mat[i][i]) &lt; eps){
+                    ans[i] = 0;
+                    continue;
+                }
+                ans[i] = mat[i][2];
+                for(int j = i + 1; j &lt; 2; j++) ans[i] -= mat[i][j]*ans[j];
+                ans[i] /= mat[i][i];
+            }
+            tmp[i1] = ans[0];
+            tmp[i2] = ans[1];
+            /*assert(abs(ans[0] + ans[1] - 1) &lt;= 1e-6);
+            assert(ans[0] &gt; -eps &amp;&amp; ans[1] &gt; -eps); 
+            assert(abs(arr[1].ff*ans[0] + arr[2].ff*ans[1] - sx) &lt;= 1e-6);
+            assert(abs(arr[1].ss*ans[0] + arr[2].ss*ans[1] - sy) &lt;= 1e-6);*/
+            cout &lt;&lt; &quot;Yes&quot; &lt;&lt; endl;
+            for(int i = 1; i &lt;= n; i++) cout &lt;&lt; fixed &lt;&lt; setprecision(9) &lt;&lt; abs(tmp[i]) &lt;&lt; &quot; &quot;;
+            cout &lt;&lt; endl;
+            return; 
+        }
+    }
+
+	pair&lt;double, int&gt; best = {1e9, -1};
+	for(int i = 0; i&lt;sz(ch); i++){
+		best = min(best, {segDist(ch[i], ch[(i+1)%sz(ch)], tar), i});
+	}
+	int p1 = mp[ch[best.second]]-1, p2 = mp[ch[(best.second+1)%sz(ch)]]-1;
+	int p3 = -1;
+	for(int i = 0; i&lt;n; i++){
+		if(i == p1 || i == p2) continue;
+		vector&lt;P&gt; v = {pts[p1], pts[p2], pts[i]};
+		if(inPolygon(v, tar, false)){
+			p3 = i;
+			break ;
+		}
+	} 
+	if(p3 == -1){
+        assert(!inPolygon(ch, tar, false));
+		cout &lt;&lt; &quot;No\n&quot;;
+		return ;
+	}
+    solve(p1 + 1, p2 + 1, p3 + 1);
+}
+
+signed main(){
+  cin.tie(0) -&gt; sync_with_stdio(0);
+
+  int T = 1;
+  //cin &gt;&gt; T;
+  for(int i = 1; i&lt;=T; i++){
+		//cout &lt;&lt; &quot;Case #&quot; &lt;&lt; i &lt;&lt; &quot;: &quot;;
+		solve();
+	}
+  return 0;
+}
+</code></pre>
+</div> </body> </html>
