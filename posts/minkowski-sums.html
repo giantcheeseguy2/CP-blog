@@ -1,0 +1,48 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Minkowski Sums (Template)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Minkowski Sums (Template)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">7-18-2023</div></div> <div class="tag-container"><div class="tag"><p> template</p></div><div class="tag"><p> minkowski sums</p></div></div> <div class="blog"><hr />
+<h2>Finding The Sum Of Two Convex Hulls</h2>
+<p>Given two convex hulls, we want to find the resulting hull of the set of points achieved by adding each pair of points in different hulls.</p>
+<h2>Solution</h2>
+<p>Firstly, there are at most \(N + M\) new points when merging polygons of size \(N\) and \(M\). We will start at the bottommost left point at each polygon, and consider the next edge going counterclockwise. When merging two polygons \(P\) and \(Q\), add \(P_i + Q_j\) to the polygon, then increment \(i\) or \(j\) based on whichever one has a next edge with a smaller polar angle. If they are the same, increment both.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">ll cross(pll a, pll b){
+    return a.ff*b.ss - a.ss*b.ff;
+}
+
+//is C on the left of AB
+int left(pll a, pll b, pll c) {
+    b.ff -= a.ff, b.ss -= a.ss;
+    c.ff -= a.ff, c.ss -= a.ss;
+    ll ret = cross(b, c);
+    if(ret &gt; 0) return 1;
+    if(ret &lt; 0) return -1;
+    return ret;
+}
+
+//orders the hulls such that the bottommost left point is first
+void order(vector&lt;pll&gt; &amp;v){
+    int ind = 0;
+    for(int i = 1; i &lt; v.size(); i++){
+        if(v[i].ss &lt; v[ind].ss || (v[i].ss == v[ind].ss &amp;&amp; v[i].ff &lt; v[ind].ff))
+            ind = i;
+    }
+    rotate(v.begin(), v.begin() + ind, v.end());
+}
+
+//merges the two hulls by traversing them in counterclockwise order
+vector&lt;pll&gt; merge(vector&lt;pll&gt; a, vector&lt;pll&gt; b){
+    order(a), order(b);
+    a.pb(a[0]), a.pb(a[1]);
+    b.pb(b[0]), b.pb(b[1]);
+    vector&lt;pll&gt; ret;
+    int l = 0, r = 0;
+    while(l &lt; a.size() - 2 || r &lt; b.size() - 2){
+        ret.pb({a[l].ff + b[r].ff, a[l].ss + b[r].ss});
+        ll dif = cross({a[l + 1].ff - a[l].ff, a[l + 1].ss - a[l].ss}, {b[r + 1].ff - b[r].ff, b[r + 1].ss - b[r].ss});
+        if(dif &gt;= 0) l++;
+        if(dif &lt;= 0) r++;
+    }
+    return ret;
+}
+</code></pre>
+</div> </body> </html>

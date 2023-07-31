@@ -1,0 +1,154 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Li Hua And Path (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Li Hua And Path (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">7-18-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> tree</p></div><div class="tag"><p> hld</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1797/problem/F">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets first try to solve the problem without node additions. Intuitively, we should want to fix either the min and the max, and count from there. Now, how do we gurantee that each node is the maximum or the minimum? Consider the ways to find a max or min on a path. One such way is to construct a kruskal tree for min and max, then the min and max on path become two node's lca. Since the values are on the nodes instead of the edges, dummy nodes are not needed. The condition for a node to be the max/min on its path means that it is the lca on one of the trees, and its target must not be the lca on the other tree. For a pair \(u &lt; v\), and \(v\) to be the max, we want to count the number of \(u\) such that \(u\) is in \(v\)'s subtree on the max kruskal tree but is not an ancestor of \(v\) in the min kruskal tree. This can be done by dfs in one of the trees to activate the ancestors, then querying the subtree of the other tree. To add nodes, notice that the new node is always going to be the maximum, so we just want to find the number of non minimums. This is just the number of nodes not an ancestor of the new node on the min kruskal tree.</p>
+<h2>Comments</h2>
+<ul>
+<li>Look at easy ways to check conditions and maybe it will help gurantee them.</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int bit[200005];
+int n;
+
+void update(int x, int v){
+    for(; x &lt;= n; x += x &amp; (-x)) bit[x] += v;
+}
+
+int query(int x, int ret = 0){
+    for(; x; x -= x &amp; (-x)) ret += bit[x];
+    return ret;
+}
+
+int par[200005];
+
+int find(int x){
+    if(x == par[x]) return x;
+    return par[x] = find(par[x]);
+}
+
+int in[200005], out[200005], tim;
+vector&lt;int&gt; g1[200005], g2[200005];
+ll ans = 0;
+
+void dfs1(int x){
+    in[x] = tim++;
+    for(int i : g1[x]){
+        dfs1(i);
+    }
+    out[x] = tim - 1;
+}
+
+void dfs2(int x){
+    in[x] = tim++;
+    for(int i : g2[x]){
+        dfs2(i);
+    }
+    out[x] = tim - 1;
+}
+
+void dfs3(int x){
+    update(in[x], 1);
+    ans += out[x] - in[x] - (query(out[x]) - query(in[x]));
+    for(int i : g1[x]){
+        dfs3(i);
+    }
+    update(in[x], -1);
+}
+
+int depth[400005];
+
+void dfs4(int x){
+    update(in[x], 1);
+    ans += out[x] - in[x] - (query(out[x]) - query(in[x]));
+    for(int i : g2[x]){
+        depth[i] = depth[x] + 1;
+        dfs4(i);
+    }
+    update(in[x], -1);
+}
+
+int main(){
+    setIO();
+    cin &gt;&gt; n;
+    vector&lt;int&gt; g[n + 1];
+    for(int i = 0; i &lt; n - 1; i++){
+        int a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        g[a].pb(b);
+        g[b].pb(a);
+    }
+    //max kruskal tree
+    for(int i = 1; i &lt;= n; i++) par[i] = i;
+    for(int i = 1; i &lt;= n; i++){
+        for(int j : g[i]){
+            if(i &gt; j){
+                g1[i].pb(find(j));
+                par[find(j)] = i;
+            }
+        }
+    }
+    //min kruskal tree
+    for(int i = 1; i &lt;= n; i++) par[i] = i;
+    for(int i = n; i &gt;= 1; i--){
+        for(int j : g[i]){
+            if(i &lt; j){
+                g2[i].pb(find(j));
+                par[find(j)] = i;
+            }
+        }
+    }
+    tim = 1;
+    dfs2(1);
+    dfs3(n);
+    tim = 1;
+    dfs1(n);
+    dfs4(1);
+    int q;
+    cin &gt;&gt; q;
+    int cur = n + 1;
+    cout &lt;&lt; ans &lt;&lt; endl;
+    while(q--){
+        int x;
+        cin &gt;&gt; x;
+        ans += cur - depth[x] - 2;
+        depth[cur++] = depth[x] + 1;
+        cout &lt;&lt; ans &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>

@@ -1,0 +1,46 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Convex Hull (Template)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Convex Hull (Template)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">7-18-2023</div></div> <div class="tag-container"><div class="tag"><p> template</p></div><div class="tag"><p> convex hull</p></div></div> <div class="blog"><hr />
+<h2>Finding Convex Hull</h2>
+<p>Given a set of points, we want to find the smallest convex polygon that covers all of them.</p>
+<h2>Solution</h2>
+<p>Assume that given a line segment, we can find if a point is to the left of it. We will first construct an upper hull. Sort the points in order of increasing x coordinate. At each \(i\), assume that we have constructed the hull up until \(i - 1\). Then, we just have to check if \(i\) is to the left of the previous line segment used on the hull. If it is, then we can remove that line and continue until \(i\) is no longer to the left, meaning that it is now on the hull. We can mirror this process to find the lower hull as well.</p>
+<h2>Code</h2>
+<pre><code class="language-c++">ll cross(pll a, pll b){
+    return a.ff*b.ss - a.ss*b.ff;
+}
+
+//is C on the left of AB
+int left(pll a, pll b, pll c) {
+    b.ff -= a.ff, b.ss -= a.ss;
+    c.ff -= a.ff, c.ss -= a.ss;
+    ll ret = cross(b, c);
+    if(ret &gt; 0) return 1;
+    if(ret &lt; 0) return -1;
+    return ret;
+}
+
+//finds the convex hull of a set of points
+//change the conditions to &lt;= or &gt;= to include points that lie on lines
+vector&lt;pll&gt; hull(vector&lt;pll&gt; v){
+    sort(v.begin(), v.end());
+    vector&lt;pll&gt; ret;
+    ret.pb(v[0]);
+    for (int i = 1; i &lt; v.size(); i++) {
+        pll p = v[i];
+        while (ret.size() &gt;= 2 &amp;&amp; left(ret[ret.size()-2], ret.back(), p) &lt; 0) ret.pop_back();
+        ret.pb(p);
+    }
+    int ind = ret.size();
+    ret.pb(v[0]);
+    for (int i = 1; i &lt; v.size(); i++) {
+        pll p = v[i];
+        while (ret.size() - ind &gt;= 2 &amp;&amp; left(ret[ret.size()-2], ret.back(), p) &gt; 0) ret.pop_back();
+        ret.pb(p);
+    } 
+    ret.pop_back();
+    reverse(ret.begin() + ind, ret.end());
+    ret.pop_back();
+    return ret;
+}
+</code></pre>
+</div> </body> </html>
