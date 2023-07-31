@@ -3,7 +3,7 @@
 <h2>Goal</h2>
 <p>Find the sum of all values that has an identifier that is a subset of a query.</p>
 <h2>Solution</h2>
-<p>We will solve this using dynamic programming. Let \(dp[mask][i] = ) the sum of all values whose first \(i\) bits are a subset of \(mask\) and the remainder are exactly \(mask\). Then, \(dp[mask][i] = dp[mask][i - 1]\) if \(i\) is not set, and \(dp[mask][i] = dp[mask][i - 1] + dp[mask ^ (1 &lt;&lt; i)][i - 1]\) if \(i\) is set. The second state can be removed and the dp can be generalized to non binary masks.</p>
+<p>We will solve this using dynamic programming. Let \(dp[mask][i] = \) the sum of all values whose first \(i\) bits are a subset of \(mask\) and the remainder are exactly \(mask\). Then, \(dp[mask][i] = dp[mask][i - 1]\) if \(i\) is not set, and \(dp[mask][i] = dp[mask][i - 1] + dp[mask ^ (1 &lt;&lt; i)][i - 1]\) if \(i\) is set. The second state can be removed and the dp can be generalized to non binary masks.</p>
 <h2>Code</h2>
 <p>Subsets</p>
 <pre><code class="language-c++">for(int i = 0; i &lt; n; i++){
