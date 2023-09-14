@@ -1,0 +1,131 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Exotic Queries (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Exotic Queries (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">9-13-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1864/problem/F">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets try to solve this problem with a single query. The answer is always the sum of positive differences between adjacent discretized elements within the query. This is hard to maintain, however, since the index of each value in the discretization can change by a lot per query. Intead, try considering different ways of solving the single query case. Another method is to greedily remove the smallest element from each range whenever possible. This gives the process a tree structure, where each node represents an interval, and it points to the disjoint intervals created after removing the smallest element from the original inerval. The answer is then the number of nodes in the tree. We cannot rebuild the tree for every query or repeatedly merge children into the root when removing the smallest element from consideration. The former is too slow, and the latter doesn't work since removing the smallest element from may merge extra nodes. Instead, lets look at when two nodes with the same minimum value in their intervals exist rather than them being the same node. This is when they have a least common ancestor with some smaller minimum. Since the value of that minimum doesn't matter, we can set it to the largest value smaller between any two closest occurences of a value. Now, the condition for an extra node appearing for the two closest occurences of a value \(x\) with a largest smaller value of \(v\) between them is that \(l \le v \le x \le r\). Thus, the problem is now finding the number of intervals contained in a query interval, which can be solved offlin with a single segtree. Note that each value \(x\) by default comes with an interval of \([x, x]\).</p>
+<h2>Comments</h2>
+<ul>
+<li>Think about counter cases to not die on penalty for wrong solutions and save time</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+int arr[1000005];
+int n, q;
+int seg[4000005];
+
+int quer(int l, int r, int ul = 0, int ur = n - 1, int cur = 0){
+    if(l &lt;= ul &amp;&amp; ur &lt;= r) return seg[cur];
+    if(ul &gt; r || ur &lt; l) return 0;
+    int mid = (ul + ur)/2;
+    return max(quer(l, r, ul, mid, cur*2 + 1), quer(l, r, mid + 1, ur, cur*2 + 2));
+}
+
+void upd(int x, int v, int l = 0, int r = n - 1, int cur = 0){
+    if(l == r){
+        seg[cur] = v;
+        return;
+    }
+    int mid = (l + r)/2;
+    if(x &lt;= mid) upd(x, v, l, mid, cur*2 + 1);
+    else upd(x, v, mid + 1, r, cur*2 + 2);
+    seg[cur] = max(seg[cur*2 + 1], seg[cur*2 + 2]);
+}
+
+int bit[1000005];
+
+void update(int x, int v){
+    for(x++; x &lt;= n + 1; x += x &amp; (-x)) bit[x] += v;
+}
+
+int query(int x, int ret = 0){
+    for(x++; x; x -= x &amp; (-x)) ret += bit[x];
+    return ret;
+}
+
+int ans[1000005];
+
+const int BUFSIZE = 20 &lt;&lt; 20;
+char Buf[BUFSIZE + 1], *buf = Buf;
+
+template&lt;class T&gt;
+void scan(T &amp;x){
+    int neg = 1;
+    for(x = 0; *buf &lt; '0' || *buf &gt; '9'; buf++) if(*buf == '-') neg = -1;
+    while(*buf &gt;= '0' &amp;&amp; *buf &lt;= '9') x = x*10 + (*buf - '0'), buf++;
+    x *= neg;
+}
+
+void setIO(){
+    fread(Buf, 1, BUFSIZE, stdin);
+}
+
+int main(){
+    setIO();
+    scan(n), scan(q);
+    vector&lt;int&gt; m[n + 1];
+    for(int i = 0; i &lt; n; i++) scan(arr[i]), m[arr[i]].pb(i);
+    vector&lt;pii&gt; v;
+    for(int i = 1; i &lt;= n; i++){
+        int prv = -1;
+        for(int j : m[i]){
+            if(prv != -1 &amp;&amp; j &gt; prv + 1){
+                v.pb({quer(prv + 1, j - 1), i});
+            }
+            upd(j, i);
+            prv = j;
+        }
+        if(m[i].size()) update(i, 1);
+    }
+    vector&lt;int&gt; upd[n + 1];
+    vector&lt;pii&gt; que[n + 1];
+    for(int i = 0; i &lt; q; i++){
+        int l, r;
+        scan(l), scan(r);
+        ans[i] += query(r) - query(l - 1);
+        que[r].pb({l, i});
+    }
+    for(int i = 0; i &lt;= n + 1; i++) bit[i] = 0;
+    for(pii i : v){
+        upd[i.ss].pb(i.ff);
+    }
+    for(int i = 1; i &lt;= n; i++){
+        for(int j : upd[i]){
+            update(j, 1);
+        }
+        for(pii j : que[i]){
+            ans[j.ss] += query(n) - query(j.ff - 1);
+        }
+    }
+    for(int i = 0; i &lt; q; i++) cout &lt;&lt; ans[i] &lt;&lt; &quot;\n&quot;;
+}
+</code></pre>
+</div> </body> </html>
