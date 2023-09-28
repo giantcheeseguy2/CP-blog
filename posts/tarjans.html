@@ -32,7 +32,7 @@
 <p>There is no need to gurantee that \(i\) is in the stack if it has been visited before, since the edges are undirected. So if a node has been visited before, and it is visited again, then they are all part of the same strongly connected component. We should also store the id of the parent edge, since we don't want to be able to go back through the same edge.</p>
 <pre><code class="language-c++">void dfs(int x, int p = -1){
 	dfn[x] = low[x] = ++tim;
-	s.push(x);
+	st.push(x);
 	for(pii i : g[x]){
 		if(i.ss == p) continue;
 		if(!dfn[i.ff]){

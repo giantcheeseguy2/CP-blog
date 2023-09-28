@@ -1,0 +1,218 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Goldberg Machine 3 (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Goldberg Machine 3 (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">9-25-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> tree</p></div><div class="tag"><p> dp</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/problemset/problem/1863/H">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets try to solve this without updates first. Let \(a\) and \(b\) be the two children of \(i\). Then, \(dp[i] = 2 \cdot \max(dp[a], dp[b]) - [dp[a] \neq dp[b]]\). This actually seems kinda similar to creating a number in binary, since we are shifting the max one bit to the left, and then subtracting one or zero. However, subtraction doesn't work nicely for this, so lets try to get rid of it. By playin with the equation we can see that if we let \(dp[i] = \text{answer for the subtree of i} - 1\), then our transitions will now be \(dp[i] = 2 \cdot \max(dp[a], dp[b]) + [dp[a] = dp[b]]\). Now, looking at the dp as a construction of a binary number, we actually know the ending position of each one bit when it arrives in \(dp[1]\). Thus, we can write \(dp[i] = max(dp[a], dp[b]) + 2^{depth[i]} \cdot [dp[a] = dp[b]]\), with \(dp[i] = (h_i - 1) \cdot 2^{depth[i]}\) for the leaf case. Dealing with the added bit is still hard to do efficiently with updates, but turns out we can bound the number of times it occurs. Notice that if a new bit is ever added, it will not overlap with any of the previous bits, so every time \(dp[a] = dp[b]\), a new bit is added. Initially, \(dp[i]\) can only have at most \(\log h_i\) bits. Every merge of \(dp[a] = dp[b]\) will require two equal values and create a new bit. Thus, if \(dp[i]\) has \(x\) bits, then it must have merged at least \(2^{x - \log h}\) values together, meaning that \(dp[i]\) must have at most \(\log h + \log N\) bits. For any \(dp[i]\), we can trace any path to a leaf by always going down the child with maximum value. Similarly, for any leaf node, we can keep going up and find all \(dp[i]\) it will affect. If we have a leaf with val \(v\), we want to find the \(dp[i] = v\) with the closest lca, and merge them together at that lca. Knowing that each each merge adds in exactly one bit, we know that when inserting a new leaf nodes, it will only merge at most \(\log h + \log N\) times. To support removals, instead of storing the explicit value of \(dp[i]\), lets store a lower bound on it instead. Now, insertions require finding the closest \(dp[i] \ge v\), and removing a leaf nodes just requires you to retrace your steps and remove all the lower bounds added by the insertion. Note that for the \(h_i = 0\) case, we will be inserting a negative number. However, we don't actually have to insert any of these values, since following the max child downwards will never result in a \(0\) value leaf node unless all leaves are \(0\), and that case can be accounted for separately. To store these numbers, we can use a map of hashes that stores the inorder of all nodes with that lower bound. To find the maximum, for each leaf, we can insert the value it reaches after all merges into a set.</p>
+<h2>Comments</h2>
+<ul>
+<li>Sometimes find a target structure that can be applied to the problem, and try to change the problem to accomadate that structure</li>
+<li>Think about edge cases like negatives thoroughly to make sure they actually exist</li>
+<li>Make life easier by thinking about conditions that make implementation easier</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 998244353;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+int p1 = 102013, p2 = 102229;
+int mod1 = 1000000007, mod2 = 1000003559;
+
+ll enc(const vector&lt;int&gt; &amp;x){
+    pii ret = {0, 0};
+    int m1 = p1, m2 = p2;
+    for(int i : x){
+        ret.ff = (ret.ff + (ll)(i + 1)*m1%mod1)%mod1;
+        ret.ss = (ret.ss + (ll)(i + 1)*m2%mod2)%mod2;
+        m1 = (ll)m1*p1%mod1;
+        m2 = (ll)m2*p2%mod2;
+    }
+    return (ll)ret.ff*mod2 + ret.ss;
+}
+
+
+int arr[200005];
+vector&lt;int&gt; g[200005];
+int n;
+
+int in[200005], sz[200005], depth[200005], head[200005], par[200005], rev[200005];
+int tim = 0;
+
+void dfs1(int x){
+    sz[x] = 1;
+    for(int &amp;i : g[x]){
+        depth[i] = depth[x] + 1;
+        par[i] = x;
+        dfs1(i);
+        sz[x] += sz[i];
+        if(sz[i] &gt; sz[g[x][0]]) swap(g[x][0], i);
+    }
+}
+
+bool leaf[200005];
+
+void dfs2(int x){
+    if(g[x].size() == 0){
+        leaf[x] = true;
+        rev[tim] = x;
+        in[x] = tim++;
+        return;
+    }
+    head[g[x][0]] = head[x];
+    dfs2(g[x][0]);
+    rev[tim] = x;
+    in[x] = tim++;
+    head[g[x][1]] = g[x][1];
+    dfs2(g[x][1]);
+}
+
+int lca(int a, int b){
+    while(head[a] != head[b]){
+        if(depth[head[a]] &gt; depth[head[b]]) swap(a, b);
+        b = par[head[b]];
+    }
+    if(depth[a] &gt; depth[b]) swap(a, b);
+    return a;
+}
+
+//value, inorder
+//smallest bit to highest bit
+map&lt;ll, set&lt;int&gt;&gt; m;
+multiset&lt;vector&lt;int&gt;&gt; mx;
+
+void ins(int v, int x){
+    vector&lt;int&gt; cur;
+    for(int i = 29; i &gt;= 0; i--){
+        if(v &amp; (1 &lt;&lt; i)){
+            cur.pb(depth[x] + i);
+        }
+    }
+    while(true){
+        set&lt;int&gt; &amp;s = m[enc(cur)];
+        set&lt;int&gt;::iterator it = s.lower_bound(in[x]);
+        int a = (it == s.begin() ? -1 : *prev(it));
+        int b = (it == s.end() ? -1 : *it);
+        int a1 = (a == -1 ? 0 : lca(rev[a], x));
+        int b1 = (b == -1 ? 0 : lca(rev[b], x));
+        s.insert(in[x]);
+        if(depth[a1] &lt; depth[b1]) swap(a1, b1), swap(a, b);
+        if(depth[a1] == -1) break;
+        if(a1 == rev[a]) break;
+        cur.pb(depth[a1]);
+        x = a1;
+    }
+    mx.insert(cur);
+}
+
+void rem(int v, int x){
+    vector&lt;int&gt; cur;
+    for(int i = 29; i &gt;= 0; i--){
+        if(v &amp; (1 &lt;&lt; i)){
+            cur.pb(depth[x] + i);
+        }
+    }
+    while(true){
+        set&lt;int&gt; &amp;s = m[enc(cur)];
+        s.erase(in[x]);
+        set&lt;int&gt;::iterator it = s.lower_bound(in[x]);
+        int a = (it == s.begin() ? -1 : *prev(it));
+        int b = (it == s.end() ? -1 : *it);
+        int a1 = (a == -1 ? 0 : lca(rev[a], x));
+        int b1 = (b == -1 ? 0 : lca(rev[b], x));
+        if(depth[a1] &lt; depth[b1]) swap(a1, b1), swap(a, b);
+        if(depth[a1] == -1) break;
+        if(a1 == rev[a]) break;
+        cur.pb(depth[a1]);
+        x = a1;
+    }
+    mx.erase(mx.find(cur));
+}
+
+int pow2[300005];
+
+int ans(){
+    if(mx.size() == 0) return 0;
+    const vector&lt;int&gt; &amp;cur = *mx.rbegin();
+    int sum = 0;
+    for(int i : cur){
+        sum = (sum + pow2[i])%MOD;
+    }
+    return (sum + 1)%MOD;
+}
+
+const int BUFSIZE = 20 &lt;&lt; 20;
+char Buf[BUFSIZE + 1], *buf = Buf;
+
+template&lt;class T&gt;
+void scan(T &amp;x){
+    int neg = 1;
+    for(x = 0; *buf &lt; '0' || *buf &gt; '9'; buf++) if(*buf == '-') neg = -1;
+    while(*buf &gt;= '0' &amp;&amp; *buf &lt;= '9') x = x*10 + (*buf - '0'), buf++;
+    x *= neg;
+}
+
+void setIO(){
+    fread(Buf, 1, BUFSIZE, stdin);
+}
+
+int main(){
+    setIO();
+    pow2[0] = 1;
+    for(int i = 1; i &lt;= 300000; i++) pow2[i] = (ll)pow2[i - 1]*2%MOD;
+    scan(n);
+    for(int i = 2; i &lt;= n; i++){
+        int x;
+        scan(x);
+        g[x].pb(i);
+    }
+    for(int i = 1; i &lt;= n; i++) scan(arr[i]);
+    dfs1(1);
+    head[1] = 1;
+    dfs2(1);
+    depth[0] = -1;
+    for(int i = 1; i &lt;= n; i++){
+        if(leaf[i] &amp;&amp; arr[i]){
+            ins(arr[i] - 1, i);
+        }
+    }
+    cout &lt;&lt; ans() &lt;&lt; &quot;\n&quot;;
+    int q;
+    scan(q);
+    while(q--){
+        int a, b;
+        scan(a), scan(b);
+        if(arr[a]) rem(arr[a] - 1, a);
+        arr[a] = b;
+        if(arr[a]) ins(arr[a] - 1, a);
+        cout &lt;&lt; ans() &lt;&lt; &quot;\n&quot;;
+    }
+}
+</code></pre>
+</div> </body> </html>
