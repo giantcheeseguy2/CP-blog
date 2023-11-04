@@ -1,0 +1,118 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Michael and Hotel (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Michael and Hotel (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">9-26-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> ad hoc</p></div><div class="tag"><p> binary search</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1854/problem/D">Problem Link</a></p>
+<h2>Solution</h2>
+<p>For simplicity, lets assume that room \(1\) is always part of the cycle. Lets consider ways to increase the size of our cycle. Given a node in the cycle, we can always find the next node in the cycle by repeatedly removing half the set of rooms from consideration. This will inrease the size of the cycle by \(1\) for a cost of \(9\) queries. Unfortunately, this takes too many queries. Lets consider another way we can extend our cycle. Instead of using the cycle to find the next node, we can also check if a room is in the cycle. For each room, we can check if its next room is in the cycle, thus increasing the size of the cycle by \(1\) for a cost of \(500\) queries. This can be improved if we know our existing cycle length of \(k\), then we can check if the next \(k\)-th room is part of the cycle. This doubles our cycle size for a cost of \(500\) queries. This also takes too many queries. However, notice how for the first few cycle size increases, the first method is more efficient. So, if we use the first method to get the cycle to size \(63\), it will only take \(3\) queries of the second method to reach \(500\). This takes \(62 \cdot 9 + (500 - 63) + (500 - 126) + (500 - 252) = 1617\) queries to find the entire cycle. The remaining queries can be used to reach the cycle or check if a node will end in the cycle.</p>
+<h2>Comments</h2>
+<ul>
+<li>Explore different ways to solve a subproblem and combine them if they cover each others weaknesses</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int MX = 63;
+int n;
+
+int check(int st, int k){
+    vector&lt;int&gt; v;
+    int l = 1, r = n;
+    while(l &lt; r){
+        int mid = (l + r)/2;
+        cout &lt;&lt; &quot;? &quot;;
+        cout &lt;&lt; st &lt;&lt; &quot; &quot; &lt;&lt; k &lt;&lt; &quot; &quot; &lt;&lt; mid - l + 1 &lt;&lt; &quot; &quot;;
+        for(int i = l; i &lt;= mid; i++) cout &lt;&lt; i &lt;&lt; &quot; &quot;;
+        cout &lt;&lt; endl;
+        int x;
+        cin &gt;&gt; x;
+        if(x) r = mid;
+        else l = mid + 1;
+    }
+    return l;
+}
+
+bool in[505];
+
+int main(){
+    //setIO();
+    cin &gt;&gt; n;
+    int st = check(1, INF);
+    vector&lt;int&gt; v = {st};
+    bool cyc = false;
+    for(int i = 1; i &lt; MX; i++){
+        int nxt = check(st, i);
+        if(nxt != v.front()){
+            v.pb(nxt);
+        } else {
+            cyc = true;
+            break;
+        }
+    }
+    for(int i : v) in[i] = true;
+    int len = v.size();
+    while(!cyc){
+        vector&lt;int&gt; nxt;
+        for(int i = 1; i &lt;= n; i++){
+            if(!in[i]){
+                cout &lt;&lt; &quot;? &quot; &lt;&lt; i &lt;&lt; &quot; &quot; &lt;&lt; len &lt;&lt; &quot; &quot; &lt;&lt; v.size() &lt;&lt; &quot; &quot;;
+                for(int j : v) cout &lt;&lt; j &lt;&lt; &quot; &quot;;
+                cout &lt;&lt; endl;
+                cin &gt;&gt; in[i];
+                if(in[i]) nxt.pb(i);
+            }
+        }
+        if(nxt.size() &lt; len){
+            cyc = true;
+        }
+        for(int i : nxt) v.pb(i);
+        len *= 2;
+    }
+    for(int i = 1; i &lt;= n; i++){
+        if(!in[i]){
+            cout &lt;&lt; &quot;? &quot; &lt;&lt; i &lt;&lt; &quot; &quot; &lt;&lt; INF &lt;&lt; &quot; &quot; &lt;&lt; v.size() &lt;&lt; &quot; &quot;;
+            for(int j : v) cout &lt;&lt; j &lt;&lt; &quot; &quot;;
+            cout &lt;&lt; endl;
+            cin &gt;&gt; in[i];
+        }
+    }
+    vector&lt;int&gt; ans;
+    for(int i = 1; i &lt;= n; i++) if(in[i]) ans.pb(i);
+    cout &lt;&lt; &quot;! &quot; &lt;&lt; ans.size() &lt;&lt; &quot; &quot;;
+    for(int i : ans) cout &lt;&lt; i &lt;&lt; &quot; &quot;;
+    cout &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

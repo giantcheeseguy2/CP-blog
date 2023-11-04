@@ -1,0 +1,119 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Doremy's Experimental Tree (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Doremy's Experimental Tree (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">11-3-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> mst</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1764/problem/F">Problem Link</a></p>
+<h2>Solution</h2>
+<p>The farther apart \(i\) and \(j\) are in the tree, the smaller \(f(i, j)\) will be. Thus, if \((i, j)\) are both contained on the path between \(a\) and \(b\), then \(f(i, j) \ge f(a, b)\). We can immediately know that the maximum \((i, j)\) must exist as an edge. Starting with this single edge, lets try to construct a tree. Looking at the second maximum \(f(i', j')\), we can see that it's path cannot contain \(i\) and \(j\), so \((i', j')\) must also be an edge. With the third maximum \(f(i'', j'')\), it will either be its own edge, or if \(j = i'\), \(i'' = i\), and \(j'' = j'\), then it will not be an edge. This process seems similar to finding the maximum spanning tree, and that is in fact the answer. When checking a new \((i, j)\), if it connects two disjoint components, then it must be a new edge, since all single edges that could be on the path between its two endpoints must have greater \(f\) and all \(f\) greater have already been checked. If both endpoints are in a single component, then this edge must be discarded. To find the edge weights, rewrite the formula relating \(f(a, a)\) and \(f(b, b)\). Note the diameter edge must be considered separately if it exists due to divide by zero error.</p>
+<h2>Comments</h2>
+<ul>
+<li>Sometimes don't skip observations and take a step back to see how you got there and how it can help</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+vector&lt;int&gt; g[2005];
+ll f[2005][2005];
+int sub[2005];
+int n;
+
+pii diam = {-1, -1};
+
+void dfs(int x, int p = 0){
+    sub[x] = 1;
+    for(int i : g[x]){
+        if(i == p) continue;
+        dfs(i, x);
+        sub[x] += sub[i];
+        if(2*sub[i] == n){
+            diam = {x, i};
+        } else {
+            cout &lt;&lt; x &lt;&lt; &quot; &quot; &lt;&lt; i &lt;&lt; &quot; &quot; &lt;&lt; (f[x][x] - f[i][i])/(2*sub[i] - n) &lt;&lt; endl;
+        }
+    }
+}
+
+ll cum = 0;
+
+void dfs1(int x, int p = 0){
+    sub[x] = 1;
+    for(int i : g[x]){
+        if(i == p) continue;
+        dfs1(i, x);
+        sub[x] += sub[i];
+        if(2*sub[i] == n){
+
+        } else {
+            ll w = (f[x][x] - f[i][i])/(2*sub[i] - n);
+            cum += w*sub[i];
+        }
+    }
+}
+
+vector&lt;pair&lt;ll, pii&gt;&gt; e; 
+
+int par[2005];
+
+int find(int x){
+    if(x == par[x]) return x;
+    return par[x] = find(par[x]);
+}
+
+int main(){
+    setIO();
+    cin &gt;&gt; n;
+    for(int i = 1; i &lt;= n; i++){
+        par[i] = i;
+        for(int j = 1; j &lt;= i; j++){
+            cin &gt;&gt; f[i][j];
+            e.pb({f[i][j], {i, j}});
+        }
+    }
+    sort(e.rbegin(), e.rend());
+    for(auto i : e){
+        if(find(i.ss.ff) != find(i.ss.ss)){
+            par[find(i.ss.ff)] = find(i.ss.ss);
+            g[i.ss.ff].pb(i.ss.ss);
+            g[i.ss.ss].pb(i.ss.ff);
+        }
+    }
+    dfs(1);
+    if(diam.ff != -1){
+        dfs1(diam.ff);
+        cout &lt;&lt; diam.ff &lt;&lt; &quot; &quot; &lt;&lt; diam.ss &lt;&lt; &quot; &quot; &lt;&lt; (f[diam.ff][diam.ff] - cum)/sub[diam.ss] &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>
