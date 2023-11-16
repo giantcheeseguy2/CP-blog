@@ -1,0 +1,91 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | String Transformation 2 (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>String Transformation 2 (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">11-15-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> dp</p></div><div class="tag"><p> bitmask</p></div><div class="tag"><p> graph</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1383/problem/C">Problem Link</a></p>
+<h2>Solution</h2>
+<p>We can represent every index as an edge from \(a[i]\) to \(b[i]\), thus turning our problem into a directed graph. This graph doesn't have much meaning yet, but lets try putting some conditions our graph to solve an easier version of the problem. Notice if our graph is a connected dag of size \(n\), then there is a solution that involves \(n - 1\) moves. We can't do better than this, since \(n - 1\) is the bare minimum amount of edges needed to keep the graph connected. To achieve the \(n - 1\), we simply take a topological sort of the dag, call it \(t\), and whenever we are at \(t_i)\, we update all characters \(t_i\) to be \(t_{i + 1}\). It is easy to see that this will always work, since if there is an edge from \(a\) to \(b\) then \(a\) will come before \(b\) in \(t\). Thus, \(a\) will reach \(b\) after some series of operations. Now, consider if there are cycles in the graph. There is an underlying dag structure in this graph, so lets take the topological sort of that. Then, if a node has an edge going up the dag and creating a cycle, then we can additionally add that node to the front of the topological sort, thus satisfying all of that node's outgoing edge requirements. However, there are many underlying dag structures to choose from. We want to minimize the amount of nodes we must add to the front of the topological sort, so we want to minimize the amount of nodes that have an edge pointing back into the dag. This is equivalent to choosing a maximal subset of nodes such that no cycle of forms, which can be done using bitmask dp. Note that the outgoing edges from each node can be represented by a bitmask to improve complexity. Also note that the graph is not necessarily connected, so we have to account for each component as well.</p>
+<h2>Comments</h2>
+<ul>
+<li>When coming up for equivalencies, double check with some casework to make sure they are correct</li>
+<li>Don't be too lazy to draw out cases</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int par[20];
+
+int find(int x){
+    if(x == par[x]) return x;
+    return par[x] = find(par[x]);
+}
+
+int main(){
+    setIO();
+    int T;
+    cin &gt;&gt; T;
+    for(int tt = 1; tt &lt;= T; tt++){
+        int n;
+        cin &gt;&gt; n;
+        string a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        for(int i = 0; i &lt; 20; i++) par[i] = i;
+        int g[20];
+        memset(g, 0, sizeof(g));
+        for(int i = 0; i &lt; n; i++){
+            par[find(a[i] - 'a')] = find(b[i] - 'a');
+            if(a[i] != b[i]){
+                g[a[i] - 'a'] |= 1 &lt;&lt; (b[i] - 'a');
+            }
+        }
+        set&lt;int&gt; comp;
+        for(int i = 0; i &lt; 20; i++) comp.insert(find(i));
+        int mx = 0;
+        bool dp[1 &lt;&lt; 20]; 
+        memset(dp, false, sizeof(dp));
+        dp[0] = true;
+        for(int i = 1; i &lt; (1 &lt;&lt; 20); i++){
+            for(int j = 0; j &lt; 20; j++){
+                if(i &gt;&gt; j &amp; 1){
+                    dp[i] |= dp[i ^ (1 &lt;&lt; j)] &amp;&amp; ((g[j] &amp; i) == 0);
+                }
+            }
+            if(dp[i]) mx = max(mx, __builtin_popcount(i));
+        }
+        cout &lt;&lt; 40 - mx - comp.size() &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>
