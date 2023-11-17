@@ -1,0 +1,66 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Jellyfish And Miku (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Jellyfish And Miku (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">11-16-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> dp</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1874/problem/D">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets try to solve for the expected value of a known array. Let \(dp[i] = \) the expected number of moves to reach \(i\) for the first time. Note that \(dp[b] - dp[a]\) is the expeted number of moves to go from index \(a\) to index \(b\). If we are at index \(i - 1\) we can only move right or left. The case where we move right can be accounted for easily. Moving left is harder, since there could be an infinite series of moves that result in it reaching \(i\). This isn't easy to model as an infinite sum, so maybe there is another way to calculate it. Remember that \(dp[i] - dp[i - 2]\) represents the expected moves to go from index \(i - 2\) to index \(i\), so we can directly use this value. Thus, \(dp[i] = dp[i - 1] + \frac{a_i}{a_i + a_{i - 1}} + \frac{a_{i - 1}}{a_i + a_{i - 1}} \cdot (dp[i] - dp[i - 2] + 1)\). Solving for \(dp[i]\), we get that \(dp[i] = \frac{a_{i - 1}}{a_i}dp[i - 2] + (a_i + a_{i - 1})dp[i - 1] + a_i + a_{i - 1}\). We can manipulate this equation a bit to make it more workable and end up with \(dp[i] = dp[i - 1] + 1 + \frac{a_{i - 1}}{a_i}(dp[i - 1] - dp[i - 2] + 1)\). Now we can write out a dp to determine the \(a_i\) values but it is to slow. One place to optimize is the fact that the transitions go back to \(i - 2\). Lets see if we only have to transition to the previous index. Looking at our equation, we can simplify it even further by letting \(dif[i] = dp[i] - dp[i - 1]\). Then, \(dif[i] = 1 + \frac{a_{i - 1}}{a_i}(dif[i - 1] + 1)\) and the answer is the sum of \(dif\), but this is still too slow. If we manually try to evaluate \(dif[i]\), then we get \(dif[1] = 1\), \(dif[2] = 1 + \frac{a_1}{a_2}\cdot 2\), \(dif[3] = 1 + \frac{a_2}{a_3} \cdot (2 + \frac{a_1}{a_2} \cdot 2) = 1 + \frac{a_1 + a_2}{a_3} \cdot 2\). Turns out, \(dif[i] = 1 + 2 \cdot\ \frac{\sum_{j=1}^{i - 1}a_j}{a_i}\). We no longer have to store \(a_{i - 1}\) as a state, since our transition is now only dependent on our current \(a_i\) and the total amount we have used so far. We can write \(dp[i][j + k] = max(dp[i][j + k], dp[i - 1][j] + 1 + 2 \cdot \frac{j}{k}\). This gives us a \(O(nm^2)\) solution. To optimize further, we can realize that it is always optimal to assign \(a_i\) in an increasing order, since if it was not increasing it could be sorted for a better expected value. Thus, we only have to check so many values of \(k\), since we must ensure that there is enough remainder to put down at least \(k\) at every subsequent index. At index \(i\), we will need to check at most \(\frac{m}{n - i + 1}\) values to check, which means there are not too many values to check in total due to harmonic series.</p>
+<h2>Comments</h2>
+<ul>
+<li>Playing around with and simplifying equations can be helpful</li>
+<li>Clearly identify what parts can be optimized and try thinking about how to do so</li>
+<li>Don't waste time idling</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int main(){
+    setIO();
+    int n, m;
+    cin &gt;&gt; n &gt;&gt; m;
+    ld dp[n + 1][m + 1];
+    for(int i = 0; i &lt;= n; i++) for(int j = 0; j &lt;= m; j++) dp[i][j] = INF;
+    dp[0][0] = 0;
+    for(int i = 1; i &lt;= n; i++){
+        for(int j = 0; j &lt; m; j++){
+            for(int k = 1; k*(n - i + 1) + j &lt;= m; k++){
+                dp[i][j + k] = min(dp[i][j + k], dp[i - 1][j] + 1 + 2*(ld)j/k);
+            }
+        }
+    }
+    cout &lt;&lt; fixed &lt;&lt; setprecision(9) &lt;&lt; dp[n][m] &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

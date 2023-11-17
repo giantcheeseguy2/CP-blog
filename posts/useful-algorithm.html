@@ -3,7 +3,7 @@
 <h2>Problem Statement</h2>
 <p><a href="https://codeforces.com/group/uodset6U2h/contest/415667/problem/B">Problem Link</a></p>
 <h2>Solution</h2>
-<p>Since the answer is multipled by a different constant for every bit, it is intuitive that we should fix a bit and find the maximum pair that carries over that bit. Now how can we maintain this? For the subtasks it is possible to use some sum over subsets and recompute every update, but this clearly cannot be scaled to larger \(N\). Instead, lets think about when two pairs of numbers carry over bit \(x\). Turns out that this is when \(c_i\%2^x + c_j\%2^x \ge 2^x\). Moving this around a bit, we get that \(c_i\%2^x \ge 2^x - c_j\%2^x\). Finding the maximum over all pairs in this manner can be done with a segtree. Thus, we only need to maintain a segtree for each bit.</p>
+<p>Since the answer is multipled by a different constant for every bit, it is intuitive that we should fix a bit and find the maximum pair that carries over that bit. Now how can we maintain this? For the subtasks it is possible to use some sum over subsets and recompute every update, but this clearly cannot be scaled to larger \(N\). Instead, lets think about when two pairs of numbers carry over bit \(x\). Turns out that this is when \(c_i%2^x + c_j%2^x \ge 2^x\). Moving this around a bit, we get that \(c_i%2^x \ge 2^x - c_j%2^x\). Finding the maximum over all pairs in this manner can be done with a segtree. Thus, we only need to maintain a segtree for each bit.</p>
 <h2>Code</h2>
 <pre><code class="language-c++">#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
 #pragma GCC target(&quot;avx2,bmi,bmi2,lzcnt,popcnt&quot;)
