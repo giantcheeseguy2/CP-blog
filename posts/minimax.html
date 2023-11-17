@@ -3,7 +3,7 @@
 <h2>Problem Statement</h2>
 <p><a href="https://loj.ac/p/2537">Problem Link</a></p>
 <h2>Solution</h2>
-<p>This problem can be solved in \(O(N^2)\) using dp. \(dp[i][j]\) = probability of \(i\) being \(j\). the transitions for a node \(i\) with children \(a\) and \(b\) is [dp[i][j] = (1 - p_i) \cdot (dp[a][j] \cdot \sum_{k = j + 1}^{MX} dp[b][j] + dp[b][j] \cdot \sum_{k = j + 1}^{MX} dp[a][j]) + p_i \cdot (dp[a][j] \cdot \sum_{k = 1}^{j - 1} dp[b][j] + \ dp[b][j] \cdot \sum_{k = 1}^{j - 1} dp[a][j])  ]. This can be solved using segtree merge by using a multiply tag and storing the sum of everything to left and right of a node when walking down.</p>
+<p>This problem can be solved in \(O(N^2)\) using dp. \(dp[i][j]\) = probability of \(i\) being \(j\). the transitions for a node \(i\) with children \(a\) and \(b\) is \[dp[i][j] = (1 - p_i) \cdot (dp[a][j] \cdot \sum_{k = j + 1}^{MX} dp[b][j] + dp[b][j] \cdot \sum_{k = j + 1}^{MX} dp[a][j]) + p_i \cdot (dp[a][j] \cdot \sum_{k = 1}^{j - 1} dp[b][j] + \ dp[b][j] \cdot \sum_{k = 1}^{j - 1} dp[a][j])  \]. This can be solved using segtree merge by using a multiply tag and storing the sum of everything to left and right of a node when walking down.</p>
 <h2>Code</h2>
 <pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
 #include &lt;ext/pb_ds/assoc_container.hpp&gt;
