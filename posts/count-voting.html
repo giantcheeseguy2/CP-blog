@@ -1,11 +1,21 @@
-<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Minimax (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Minimax (Tutorial)</h1>
-<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">8-8-2022</div></div> <div class="tag-container"><div class="tag"><p> loj</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> segtree merge</p></div><div class="tag"><p> tree</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Count Voting (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Count Voting (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">11-26-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> dp</p></div><div class="tag"><p> math</p></div><div class="tag"><p> pie</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
 <h2>Problem Statement</h2>
-<p><a href="https://loj.ac/p/2537">Problem Link</a></p>
+<p><a href="https://codeforces.com/contest/1799/problem/G">Problem Link</a></p>
 <h2>Solution</h2>
-<p>This problem can be solved in \(O(N^2)\) using dp. \(dp[i][j]\) = probability of \(i\) being \(j\). the transitions for a node \(i\) with children \(a\) and \(b\) is \(dp[i][j] = (1 - p_i) \cdot (dp[a][j] \cdot \sum_{k = j + 1}^{MX} dp[b][j] + dp[b][j] \cdot \sum_{k = j + 1}^{MX} dp[a][j]) + p_i \cdot (dp[a][j] \cdot \sum_{k = 1}^{j - 1} dp[b][j] + \ dp[b][j] \cdot \sum_{k = 1}^{j - 1} dp[a][j])\). This can be solved using segtree merge by using a multiply tag and storing the sum of everything to left and right of a node when walking down.</p>
+<p>If we had no conditions on voting, it is easy to count. Put every vote each person needs into an array, and the answer is just the number of distinct permutations of that array, or \(\frac{n!}{\prod c_i}\). Thus, try counting the number of bad voting configurations. However, this is hard to directly count, so lets see if we can apply principle of inclusion and exclusion. What we need to exclude are the cases when a person votes for his own team, and something easier to count is only fixing a single person to vote for his team. If we let the size of a set be the amount of configurations where person \(i\) votes for his own team, then the answer will be the size of the union of all \(i\). By PIE, \(ans = \sum_S (-1)^{|S|}\cdot \text{number of configurations where all i in S are fixed to vote for themselves}\). Note that PIE lets us only fix a certain subset of indices and ignore if the rest vote for themselves or not, so this is easier to count. To fix a subset of indices, we can maintain a \(dp[i] = \) size of a set containing exactly \(i\) indices. To fix a subset, lets create another array, \(a_i\), that denotes the number of people from \(i\)'s team that vote for \(i\). The number of self voters is \(\sum a_i\). Within each team, the amount of voting configurations that satisfy that \(a_i\) is \((\sum a_i)! \cdot {sz \choose {\sum a_i}} \cdot \frac{1}{\prod a_i!}\). The amount of configurations outside of the fixed ones for \(dp[i]\) are \(\frac{(n - i)!}{\prod (c_i - a_i)!}\). Both these values can be calculated by a dp if we process each team seperately.</p>
+<h2>Comments</h2>
+<ul>
+<li>PIE exists</li>
+<li>Find equivalent ways to count something that could translate easier to code</li>
+</ul>
 <h2>Code</h2>
-<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
 #include &lt;ext/pb_ds/assoc_container.hpp&gt;
 #include &lt;ext/pb_ds/tree_policy.hpp&gt;
 using namespace __gnu_pbds;
@@ -23,7 +33,7 @@ typedef pair&lt;ld, ld&gt; pld;
 
 const int INF = 1e9;
 const ll LLINF = 1e18;
-const int MOD = 998244353;
+const int MOD = 1e9 + 7;
 
 template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
 
@@ -94,6 +104,7 @@ struct Modular {
     }
 
     Modular &amp;operator%=(const Modular &amp;x){
+        val = val%x.val;
         return *this;
     }
 
@@ -191,112 +202,62 @@ struct Mod {
 };
 
 using mint = Modular&lt;Mod&gt;;
-//using mint = double;
 
-mint seg[10000000], sub[10000000], tag[10000000];
-int left0[10000000], right0[10000000], sz = 1;
+mint fact[205];
+mint ifact[205];
 
-void push_down(int x){
-    if(tag[x] == 1) return;
-    if(left0[x]){
-        seg[left0[x]] = tag[x]*seg[left0[x]];
-        tag[left0[x]] *= tag[x];
-    }
-    if(right0[x]){
-        seg[right0[x]] = tag[x]*seg[right0[x]];
-        tag[right0[x]] *= tag[x];
-    }
-    tag[x] = 1;
-}
-
-int merge(int a, int b, mint p, mint al = 0, mint ar = 0, mint bl = 0, mint br = 0){
-    if(!a &amp;&amp; !b) return 0;
-    if(a &amp;&amp; !b){
-        seg[a] = (p*bl + (1 - p)*br)*seg[a];
-        tag[a] *= (p*bl + (1 - p)*br);
-        return a;
-    }
-    if(!a &amp;&amp; b){
-        seg[b] = (p*al + (1 - p)*ar)*seg[b];
-        tag[b] *= (p*al + (1 - p)*ar);
-        return b;
-    }
-    push_down(a);
-    push_down(b);
-    mint aal = seg[left0[a]], bbl = seg[left0[b]];
-    left0[a] = merge(left0[a], left0[b], p, al, ar + seg[right0[a]], bl, br + seg[right0[b]]);
-    right0[a] = merge(right0[a], right0[b], p, al + aal, ar, bl + bbl, br);
-    seg[a] = seg[left0[a]] + seg[right0[a]];
-    sub[a] = sub[left0[a]] + sub[right0[a]];
-    return a;
-}
-
-vector&lt;int&gt; dict;
-
-int ind(int x){
-    return lower_bound(dict.begin(), dict.end(), x) - dict.begin();
-}
-
-void update(int x, int cur, int l = 0, int r = dict.size() - 1){
-    tag[cur] = 1;
-    if(l == r){
-        seg[cur]++;
-        sub[cur]++;
-        return;
-    }
-    int mid = (l + r)/2;
-    if(x &lt;= mid) update(x, left0[cur] = sz++, l, mid);
-    else update(x, right0[cur] = sz++, mid + 1, r);
-    seg[cur] = seg[left0[cur]] + seg[right0[cur]];
-    sub[cur] = sub[left0[cur]] + sub[right0[cur]];
-}
-
-vector&lt;int&gt; g[300005];
-int arr[300005];
-int rt[300005];
-
-void dfs(int x){
-    for(int i : g[x]) dfs(i);
-    if(g[x].size() == 0){
-        rt[x] = sz++;
-        update(ind(arr[x]), rt[x]);
-    } else if(g[x].size() == 1){
-        rt[x] = rt[g[x][0]];
-    } else {
-        rt[x] = merge(rt[g[x][0]], rt[g[x][1]], arr[x]);
-    }
-}
-
-mint ans = 0;
-
-void query(int cur, int l = 0, int r = dict.size() - 1){
-    if(l == r){
-        ans += seg[cur]*seg[cur]*(l + 1)*dict[l];
-        return;
-    }
-    push_down(cur);
-    int mid = (l + r)/2;
-    query(left0[cur], l, mid);
-    query(right0[cur], mid + 1, r);
+mint choose(int a, int b){
+    return fact[a]*ifact[b]*ifact[a - b];
 }
 
 int main(){
     setIO();
     int n;
     cin &gt;&gt; n;
+    fact[0] = 1;
+    ifact[0] = 1;
     for(int i = 1; i &lt;= n; i++){
-        int x;
-        cin &gt;&gt; x;
-        g[x].pb(i);
+        fact[i] = fact[i - 1]*i;
+        ifact[i] = (mint)1/fact[i];
     }
+    int sum[n + 1];
+    vector&lt;int&gt; v[n + 1];
+    memset(sum, 0, sizeof(sum));
+    int a[n], b[n];
+    for(int i = 0; i &lt; n; i++) cin &gt;&gt; a[i];
+    for(int i = 0; i &lt; n; i++){
+        cin &gt;&gt; b[i];
+        sum[b[i]]++;
+        v[b[i]].pb(a[i]);
+    }
+    mint dp1[n + 1]; //self votes so far
+    dp1[0] = 1;
     for(int i = 1; i &lt;= n; i++){
-        cin &gt;&gt; arr[i];
-        if(!g[i].size()) dict.pb(arr[i]);
-        else arr[i] = (ll)arr[i]*796898467%MOD;
+        mint dp2[sum[i] + 1];
+        dp2[0] = 1;
+        for(int j : v[i]){
+            for(int l = sum[i]; l &gt;= 0; l--){
+                mint tot2 = 0;
+                //j gets k self votes
+                for(int k = 0; k &lt;= min(j, l); k++){
+                    tot2 += dp2[l - k]*ifact[k]*ifact[j - k];
+                }
+                dp2[l] = tot2;
+            }
+        }
+        for(int j = n; j &gt;= 0; j--){
+            mint tot = 0;
+            for(int k = 0; k &lt;= min(j, sum[i]); k++){
+                tot += dp1[j - k]*choose(sum[i], k)*fact[k]*dp2[k];
+            }
+            dp1[j] = tot;
+        }
     }
-    sort(dict.begin(), dict.end());
-    dfs(1);
-    query(rt[1]);
+    mint ans = 0;
+    for(int i = 0; i &lt;= n; i++){
+        if(i%2 == 0) ans += fact[n - i]*dp1[i];
+        else ans -= fact[n - i]*dp1[i];
+    }
     cout &lt;&lt; ans &lt;&lt; endl;
 }
 </code></pre>
