@@ -1,0 +1,118 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | 262144 Revisited (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>262144 Revisited (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">12-11-2023</div></div> <div class="tag-container"><div class="tag"><p> usaco</p></div><div class="tag"><p> ad hoc</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="http://usaco.org/index.php?page=viewproblem2&amp;cpid=1236">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets figure out the different ways we can count over all subarrays. We can try a range dp, but this doesn't translate well to optimizing. We could also try counting all subarrays with a given answer, but this is also difficult. However, notice that instead of counting for an exact answer, we can loosen the bound. The sum of \(v \cdot \text{subarrays with v as an answer}\) is equivalent to the number of subarrays with at least \(v\) as an answer. This helps since if we know the answer for a subarray is \(v\), then we know all subarrays that contain it will have an answer of at least \(v\). Notice that if a subarray contains another, then they can be counted as one. Then, for each \(v\), we can find a set of non overlapping set of intervals with an answer of \(v\). This means that we can't expand any of these subarrays futher, so all subarrays that are not contained in this set will have an answer of at least \(v + 1\). This can be done by complementary counting. Lets try to find this set of non overlapping intervals for every \(v\). We can iterate over \(v\), and insert the base case which is the interval \([i, i]\) with \(a_i = v\). Then, we find the number of intervals with answer greater than \(v\) by complementary counting based on the union of our intervals. when transitioning from \(v\) to \(v + 1\), notice that if two intersecting maximal intervals have an answer of \(v\), then their union will have an answer of \(v + 1\). So our process is to merge all overlapping intervals into a larger one, and then remove all overlaps from there. We also insert all intervals with \(a_i = v + 1\). Turns out, the number of maximal intervals is actually bounded by \(N log N\). Consider the merging process. If multiple intervals overlap, only the leftmost and rightmost ones will be kept by the merge. Basically, the new interval size will be \(O(a + b)\) where \(a\) and \(b\) are the sizes of the intervals merged. Thus, if we think of merging as removing the larger interval and increasing the size of the smaller interval, the interval size doubles every merge and each interval will only be merged \(log N\) times. We can easily implement a \(N log^2 N\) transition with sets, but this is too slow. Instead, lets find some properties of the problem that let us optimize. First of all, each set of intersecting intervals will form a continous subarray, and after each transition, all of these intervals will expand. This will happen until there is only one interval remaining. Thus, we can maintain a vector of sorted intervals for each chain of intersecting intervals. Adding in the new \([i, i]\) intervals may merge two of these vectors together. As long as we only update vectors that contain more than one interval, our complexity will be bounded by \(O(N log N)\).</p>
+<h2>Comments</h2>
+<ul>
+<li>Find alternative ways to do something</li>
+<li>Find ways to remove redundancies</li>
+<li>Try to bound the amount of possibilities</li>
+<li>Find properties of the problem to optimize</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int main(){
+    setIO();
+    int n;
+    cin &gt;&gt; n;
+    int arr[n + 1];
+    int mx = 0;
+    for(int i = 1; i &lt;= n; i++) cin &gt;&gt; arr[i], mx = max(mx, arr[i]);
+    vector&lt;int&gt; upd[mx + 21];
+    for(int i = 1; i &lt;= n; i++){
+        upd[arr[i]].pb(i);
+    }
+    ll ans = 0;
+    ll dif = (ll)n*(n + 1)/2;
+    vector&lt;pii&gt; v[n + 1];
+    int st[n + 1];
+    memset(st, -1, sizeof(st));
+    vector&lt;int&gt; check;
+    bool in[n + 1];
+    memset(in, false, sizeof(in));
+    for(int i = 0; i &lt;= mx + 20; i++){
+        for(int j : upd[i]){
+            int x = j;
+            st[j] = j;
+            dif--;
+            if(st[j - 1] != -1){
+                v[st[j - 1]].pb({j, j + 1});
+                st[j] = st[j - 1];
+                x = st[j - 1];
+                st[j - 1] = -1;
+            } else {
+                v[j].pb({j, j + 1});
+            }
+            if(j &lt; n &amp;&amp; v[j + 1].size()){
+                int mx = j + 1;
+                for(pii k : v[j + 1]){
+                    v[st[j]].pb(k);
+                    mx = k.ss;
+                }
+                v[j + 1].clear();
+                st[mx - 1] = st[j];
+                st[j] = -1;
+            }
+            if(v[x].size() &gt; 1 &amp;&amp; !in[x]){
+                check.pb(x);
+                in[x] = true;
+            }
+        }
+        ans += dif;
+        vector&lt;int&gt; nwcheck;
+        for(int j : check){
+            if(v[j].size() == 0) continue;
+            vector&lt;pii&gt; nw;
+            queue&lt;pii&gt; q; // active intervals
+            int prv = -1;
+            for(pii k : v[j]){
+                if(q.size() &amp;&amp; q.front().ss &lt; k.ff){
+                    nw.pb({q.front().ff, prv});
+                    while(q.size() &amp;&amp; q.front().ss &lt; k.ff) q.pop();
+                }
+                q.push(k);
+                dif += (ll)(k.ss - k.ff)*(k.ss - k.ff + 1)/2;
+                if(prv &gt;= k.ff){
+                    dif -= (ll)(prv - k.ff)*(prv - k.ff + 1)/2;
+                }
+                prv = k.ss;
+            }
+            nw.pb({q.front().ff, prv});
+            prv = -1;
+            for(pii k : nw){
+                dif -= (ll)(k.ss - k.ff)*(k.ss - k.ff + 1)/2;
+                if(prv &gt;= k.ff){
+                    dif += (ll)(prv - k.ff)*(prv - k.ff + 1)/2;
+                }
+                prv = k.ss;
+            }
+            if(nw.size() &gt; 1) nwcheck.pb(j);
+            swap(nw, v[j]);
+            in[j] = false;
+        }
+        swap(check, nwcheck);
+        for(int j : check) in[j] = true;
+    }
+    cout &lt;&lt; ans &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

@@ -1,0 +1,185 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Crossing (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Crossing (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">12-11-2023</div></div> <div class="tag-container"><div class="tag"><p> qoj</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://qoj.ac/contest/338/problem/1131">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets look at what happens when we cross individual indices. We can let each character represent a distinct number from \(0\) to \(2\). We can do our operations under mod \(3\), and an operation on \(a\) and \(b\) will create a new value \(c = -(a + b)\). Notice that creating a string is the same as giving each original string a coefficient mod \(3\), and adding them together. Notice that theres only \(81\) possible equations for coefficients given by each index, so we can find all distinct equations and solve them using gaussian elimination. We can use a bfs to find all reachable coefficients initially. We can maintain a segtree where each range represents the union of all possible representations to support the range updates.</p>
+<h2>Comments</h2>
+<ul>
+<li>none</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int n;
+string a, b, c;
+string t;
+
+int enc(char x){
+    if(x == 'O') return 0;
+    if(x == 'I') return 1;
+    return 2;
+}
+
+bool vis[27];
+bitset&lt;81&gt; seg[800005];
+
+bool check(){
+    array&lt;array&lt;int, 4&gt;, 3&gt; mat = {array&lt;int, 4&gt;{0, 0, 0, 0}, array&lt;int, 4&gt;{0, 0, 0, 0}, array&lt;int, 4&gt;{0, 0, 0, 0}};
+    for(int i = 0; i &lt; 81; i++){
+        if(!seg[0][i]) continue;
+        array&lt;int, 4&gt; cur = {i/27, (i/9)%3, (i/3)%3, i%3}; 
+        //for(int j = 0; j &lt; 4; j++) cout &lt;&lt; cur[j] &lt;&lt; &quot; &quot;;
+        //cout &lt;&lt; endl;
+        bool found = false;
+        for(int j = 0; j &lt; 3; j++){
+            if(cur[j] &amp;&amp; !mat[j][j]){
+                int mult = cur[j];
+                for(int k = 0; k &lt; 4; k++) (cur[k] *= mult) %= 3;
+                mat[j] = cur;
+                found = true;
+                break;
+            }
+            int mult = mat[j][j]*cur[j];
+            for(int k = 0; k &lt; 4; k++) (cur[k] += 3 - (mat[j][k]*mult)%3) %= 3;
+        }
+        if(!found &amp;&amp; cur != array&lt;int, 4&gt;{0, 0, 0, 0}) return false;
+    }
+    for(int i = 2; i &gt; 0; i--){
+        for(int j = i - 1; j &gt;= 0; j--){
+            int mult = mat[j][i]*mat[i][i];
+            for(int k = 0; k &lt; 4; k++) (mat[j][k] += 3 - (mat[i][k]*mult)%3) %= 3;
+        }
+    }
+    for(int i = 0; i &lt; 3; i++){
+        for(int j = 0; j &lt; 3; j++){
+            for(int k = 0; k &lt; 3; k++){
+                if((mat[0][0]*i + mat[0][1]*j + mat[0][2]*k)%3 != mat[0][3]) continue;
+                if((mat[1][0]*i + mat[1][1]*j + mat[1][2]*k)%3 != mat[1][3]) continue;
+                if((mat[2][0]*i + mat[2][1]*j + mat[2][2]*k)%3 != mat[2][3]) continue;
+                if(vis[i*9 + j*3 + k]) return true;
+            }
+        }
+    }
+    return false;
+}
+
+int comb(int x, int y){
+    int a1[3] = {x/9, (x/3)%3, x%3};
+    int a2[3] = {y/9, (y/3)%3, y%3};
+    int ret = 0;
+    for(int i = 0; i &lt; 3; i++){
+        ret *= 3;
+        ret += (3 - (a1[i] + a2[i])%3)%3;
+    }
+    return ret;
+}
+
+void precomp(){
+    vis[1] = vis[3] = vis[9] = true;
+    for(int i = 0; i &lt; 27; i++){
+        for(int j = 0; j &lt; 27; j++){
+            for(int k = 0; k &lt; 27; k++){
+                if(vis[j] &amp;&amp; vis[k]){
+                    vis[comb(j, k)] = true;
+                }
+            }
+        }
+    }
+}
+
+int mask[800005];
+int tar[800005];
+int tag[800005];
+
+void build(int l = 0, int r = n - 1, int cur = 0){
+    if(l == r){
+        mask[cur] = 1 &lt;&lt; (enc(a[l])*9 + enc(b[l])*3 + enc(c[l]));
+        seg[cur][enc(a[l])*27 + enc(b[l])*9 + enc(c[l])*3 + enc(t[l])] = 1;
+        return;
+    }
+    int mid = (l + r)/2;
+    build(l, mid, cur*2 + 1);
+    build(mid + 1, r, cur*2 + 2);
+    seg[cur] = seg[cur*2 + 1] | seg[cur*2 + 2];
+    mask[cur] = mask[cur*2 + 1] | mask[cur*2 + 2];
+}
+
+void push_down(int cur){
+    if(tag[cur] == -1) return;
+    for(int i = cur*2 + 1; i &lt;= cur*2 + 2; i++){
+        tag[i] = tag[cur];
+        seg[i].reset();
+        for(int j = 0; j &lt; 27; j++) if(mask[i] &gt;&gt; j &amp; 1) seg[i][j*3 + tag[cur]] = 1;
+    }
+    tag[cur] = -1;
+}
+
+void update(int l, int r, int v, int ul = 0, int ur = n - 1, int cur = 0){
+    if(l &lt;= ul &amp;&amp; ur &lt;= r){
+        seg[cur].reset(); 
+        for(int i = 0; i &lt; 27; i++) if(mask[cur] &gt;&gt; i &amp; 1) seg[cur][i*3 + v] = 1;
+        tag[cur] = v;
+        return;
+    }
+    push_down(cur);
+    int mid = (ul + ur)/2;
+    if(l &lt;= mid) update(l, r, v, ul, mid, cur*2 + 1);
+    if(r &gt; mid) update(l, r, v, mid + 1, ur, cur*2 + 2);
+    seg[cur] = seg[cur*2 + 1] | seg[cur*2 + 2];
+}
+
+int main(){
+    setIO();
+    precomp();
+    memset(tag, -1, sizeof(tag));
+    cin &gt;&gt; n;
+    cin &gt;&gt; a &gt;&gt; b &gt;&gt; c;
+    int q;
+    cin &gt;&gt; q;
+    cin &gt;&gt; t;
+    build();
+    cout &lt;&lt; (check() ? &quot;Yes&quot; : &quot;No&quot;) &lt;&lt; endl;
+    for(int i = 0; i &lt; q; i++){
+        int l, r;
+        char ch;
+        cin &gt;&gt; l &gt;&gt; r &gt;&gt; ch;
+        l--, r--;
+        update(l, r, enc(ch));
+        cout &lt;&lt; (check() ? &quot;Yes&quot; : &quot;No&quot;) &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>

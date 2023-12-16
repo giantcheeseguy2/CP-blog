@@ -1,0 +1,88 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Seesaw (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Seesaw (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">12-15-2023</div></div> <div class="tag-container"><div class="tag"><p> qoj</p></div><div class="tag"><p> graph</p></div><div class="tag"><p> greedy</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://qoj.ac/contest/959/problem/4355">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets find an easy way to represent this problem. Each subarray can be a node with its average as the value and the transitions can be directed edges. Then, the answer for this dag is the path with the smallest max min node difference. Lets try to fix the max and find the largest min on a path. Notice that in each layer, the nodes are sorted by increasing value. Also, notice that whenever we activate the node, the optimal path shifts to the rightmost node on every layer. This is since each node is always greater than its left parent and smaller than its right parent. Thus, if we have just activated a node, we have also activated its left parent and not activated its right parent. Now, if we sort all the nodes and activate them in increasing order of value, we can easily find the answer in \(O(N^2 \log N)\). To optimize this, lets try to bound the number of relevant nodes. Draw a line representing the array's average down the dag. Notice that if we take a node that is two nodes to the right of this line, we can always find a path that goes through the previous node instead. This is true for nodes to the left of this line as well. Thus, we realize that we only have to include the first node to the left and right of the average. We can find these nodes using a two pointer and run the process as before.</p>
+<h2>Comments</h2>
+<ul>
+<li>Look for redundant operations/bound the relevant information</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+ll pre[200005];
+int arr[200005];
+
+double avg(int l, int sz){
+    return (double)(pre[l + sz - 1] - pre[l - 1])/sz;
+}
+
+int main(){
+    setIO();
+    int n;
+    cin &gt;&gt; n;
+    for(int i = 1; i &lt;= n; i++) cin &gt;&gt; arr[i];
+    pre[0] = 0;
+    for(int i = 1; i &lt;= n; i++) pre[i] = pre[i - 1] + arr[i];
+    int ind[n + 1];
+    double mid = avg(1, n);
+    ind[n] = 1;
+    for(int i = n - 1; i &gt;= 1; i--){
+        ind[i] = ind[i + 1];
+        while(avg(ind[i], i) &gt; mid) ind[i]--;
+        while(ind[i] + i &lt;= n &amp;&amp; avg(ind[i] + 1, i) &lt;= mid) ind[i]++;
+    }
+    vector&lt;pair&lt;double, int&gt;&gt; v;
+    v.pb({mid, n});
+    for(int i = 1; i &lt; n; i++){
+        v.pb({avg(ind[i], i), i});
+        v.pb({avg(ind[i] + 1, i), i});
+    }
+    double mx[n + 1];
+    memset(mx, 0, sizeof(mx));
+    sort(v.begin(), v.end());
+    multiset&lt;double&gt; s;
+    double ans = INF;
+    for(auto i : v){
+        if(mx[i.ss] &gt; 0.0) s.erase(s.find(mx[i.ss]));
+        s.insert(i.ff);
+        mx[i.ss] = i.ff;
+        if(mx[n] &gt; 0.0){
+            if(i.ff - *s.begin() &lt; ans){
+                ans = i.ff - *s.begin();
+            }
+        }
+    }
+    cout &lt;&lt; fixed &lt;&lt; setprecision(9) &lt;&lt; ans &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

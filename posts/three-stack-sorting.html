@@ -1,0 +1,95 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Three Stack Sorting (Tutorial)</title> </head> <body style="margin:0;"><script>var password ="qiao ling";(function pwcheck(){var input = prompt("Since this post is protected, you must answer a quick security question: Who is best girl (lower case with spaces)"); if(input != password) { window.location = "../index.html"; }}()); </script><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Three Stack Sorting (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">12-11-2023</div></div> <div class="tag-container"><div class="tag"><p> probgate</p></div><div class="tag"><p> ad hoc</p></div><div class="tag"><p> tutorial</p></div><div class="tag"><p> protected</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://probgate.org/viewproblem.php?pid=1622">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Try defining a recursive operation that will sort a stack. We can consider methods to sort an array without being forced to use stacks, such as merge sort or quicksort which both divide the array into halves and recurses. Conveniently, we have two additional stacks to divide and recurse into. Quicksort makes the most sense, since in a single pass we can move all elements smaller than the pivot to one stack and all elements greater than the pivot to another stack. At each layer, we spend \(N\) operations to split, and another \(N\) to merge. However, this constant factor is too high. Instead, what if we didn't have to merge? If whenever we reach the base case we can immediately move it to the first stack and have it be in order, then we are saving a considerable amount of merge operations. So lets always move all elements greater than the pivot to the other stack thats not the first stack. This way, when we recurse on the stack with elements smaller than the pivot, they will be able to be directly moved back to the first stack when it reaches the base case.</p>
+<h2>Comments</h2>
+<ul>
+<li>Look at multiple individual inefficiencies and if and how to improve</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+ 
+#define pb push_back
+#define ff first
+#define ss second
+ 
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+ 
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+ 
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+ 
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+ 
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+ 
+vector&lt;int&gt; arr[3];
+vector&lt;pair&lt;char, char&gt;&gt; ans;
+ 
+void move(int a, int b){
+    ans.pb({'A' + a, 'A' + b});
+    arr[b].pb(arr[a].back());
+    arr[a].pop_back();
+}
+ 
+//dir 0 - increasing
+//dir 1 - decreasing
+void dnq(int n, int ind){
+    if(n == 1){
+        if(ind) move(ind, 0);
+        return;
+    }
+    vector&lt;int&gt; v;
+    for(int i = 1; i &lt;= n; i++) v.pb(arr[ind][arr[ind].size() - i]);
+ 
+    sort(v.begin(), v.end());
+    int mid = v[n/2];
+    int a = (ind ? 0 : 1);
+    int b = (3 ^ a ^ ind);
+    for(int i = 0; i &lt; n; i++){
+        if(arr[ind].back() &lt; mid){
+            move(ind, a);
+        } else {
+            move(ind, b);
+        }
+    }
+    dnq(n/2, a);
+    dnq((n + 1)/2, b);
+}
+ 
+int main(){
+    setIO();
+    int n;
+    cin &gt;&gt; n;
+    for(int i = 0; i &lt; n; i++){
+        int x;
+        cin &gt;&gt; x;
+        arr[0].pb(x);
+    }
+    dnq(n, 0);
+    cout &lt;&lt; ans.size() &lt;&lt; endl;
+    for(auto i : ans) cout &lt;&lt; i.ff &lt;&lt; i.ss &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>
