@@ -1,0 +1,167 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Inverse Transformation (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Inverse Transformation (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">12-21-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> ad hoc</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1787/problem/F">Problem Link</a></p>
+<h2>Solution</h2>
+<p>The value we try to minimize is equivalent to the number of cycles in the permutation. Lets look at the cycles and how they change after every day. When done on an even cycle, it will split into exactly two cycles of even length. When done on an odd cycle, it will be similar to binary lifting to rotate the cycle. Thus, we can backtrack from our final permutation. If there is an even cycle we must merge it with another even cycle of same length on the last day. If theres an odd cycle, we should try to merge it with another odd cycle of same length to reduce the number of cycles in our oringinal permutation. Merging cycles is similar to interweaving them.</p>
+<h2>Comments</h2>
+<ul>
+<li>Look for observations</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int fpow(int a, int b, int m){
+    int ret = 1;
+    while(b){
+        if(b%2 == 1) ret = (ll)ret*a%m;
+        a = (ll)a*a%m;
+        b /= 2;
+    }
+    return ret;
+}
+
+int main(){
+    setIO();
+    int T;
+    cin &gt;&gt; T;
+    for(int tt = 1; tt &lt;= T; tt++){
+        int n, k;
+        cin &gt;&gt; n &gt;&gt; k;
+        int arr[n + 1];
+        for(int i = 1; i &lt;= n; i++){
+            cin &gt;&gt; arr[i];
+        }
+        bool vis[n + 1];
+        memset(vis, false, sizeof(vis));
+        vector&lt;int&gt; comp[n + 1];
+        for(int i = 1; i &lt;= n; i++){
+            int cur = i;
+            while(!vis[cur]){
+                vis[cur] = true;
+                comp[i].pb(cur);
+                cur = arr[cur];
+            }
+        }
+        vector&lt;int&gt; sz[n + 1];
+        for(int i = 1; i &lt;= n; i++) sz[comp[i].size()].pb(i);
+        for(int i = 1; i &lt;= n; i += 2){
+            if(!sz[i].size()) continue;
+            int ind = 0;
+            int len = 1;
+            int cnt = 0;
+            while(ind &lt; sz[i].size()){
+                while(cnt &lt; k &amp;&amp; ind + 2*len &lt;= sz[i].size()){
+                    len *= 2;
+                    cnt++;
+                }
+                int rot = fpow(2, k - cnt, i);
+                //cout &lt;&lt; i &lt;&lt; &quot; &quot; &lt;&lt; rot &lt;&lt; endl;
+                for(int j = ind; j &lt; ind + len; j++){
+                    vector&lt;int&gt; nw(i);
+                    nw[0] = comp[sz[i][j]][0];
+                    int prv = 0;
+                    for(int x = 1; x &lt; i; x++){
+                        nw[(prv + rot)%i] = comp[sz[i][j]][x];
+                        prv = (prv + rot)%i;
+                    }
+                    swap(nw, comp[sz[i][j]]);
+                }
+                ind += len;
+                len = 1;
+                cnt = 0;
+            }
+            for(int j = 0; j &lt; k; j++){
+                if(sz[i].size()%2 == 1){
+                    sz[i].pop_back();
+                }
+                if(sz[i].size() == 0) break;
+                vector&lt;int&gt; nw;
+                for(int l = 0; l &lt; sz[i].size(); l += 2){
+                    vector&lt;int&gt; v;
+                    for(int m = 0; m &lt; comp[sz[i][l]].size(); m++){
+                        v.pb(comp[sz[i][l]][m]);
+                        v.pb(comp[sz[i][l + 1]][m]);
+                    }
+                    nw.pb(sz[i][l]);
+                    swap(comp[sz[i][l]], v);
+                    comp[sz[i][l + 1]].clear();
+                }
+                swap(nw, sz[i]);
+            }
+        }
+        bool fail = false;
+        for(int i = 2; i &lt;= n; i += 2){
+            if(!sz[i].size()) continue;
+            for(int j = 0; j &lt; k; j++){
+                if(sz[i].size()%2 == 1){
+                    fail = true;
+                    break;
+                }
+                vector&lt;int&gt; nw;
+                for(int l = 0; l &lt; sz[i].size(); l += 2){
+                    vector&lt;int&gt; v;
+                    for(int m = 0; m &lt; comp[sz[i][l]].size(); m++){
+                        v.pb(comp[sz[i][l]][m]);
+                        v.pb(comp[sz[i][l + 1]][m]);
+                    }
+                    nw.pb(sz[i][l]);
+                    swap(comp[sz[i][l]], v);
+                    comp[sz[i][l + 1]].clear();
+                }
+                swap(nw, sz[i]);
+            }
+            if(fail) break;
+        }
+        if(fail){
+            cout &lt;&lt; &quot;NO&quot; &lt;&lt; endl;
+            continue;
+        }
+        for(int i = 1; i &lt;= n; i++){
+            if(comp[i].size()){
+                //for(int j : comp[i]) cout &lt;&lt; j &lt;&lt; &quot; &quot;;
+                //cout &lt;&lt; endl;
+                for(int j = 0; j &lt; comp[i].size() - 1; j++) arr[comp[i][j]] = comp[i][j + 1];
+                arr[comp[i].back()] = comp[i][0];
+            }
+        }
+        cout &lt;&lt; &quot;YES&quot; &lt;&lt; endl;
+        for(int i = 1; i &lt;= n; i++) cout &lt;&lt; arr[i] &lt;&lt; &quot; &quot;;
+        cout &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>

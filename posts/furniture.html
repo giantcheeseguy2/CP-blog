@@ -1,0 +1,152 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Furniture (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Furniture (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">12-21-2023</div></div> <div class="tag-container"><div class="tag"><p> qoj</p></div><div class="tag"><p> dsu</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://qoj.ac/contest/296/problem/1128">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Look for some conditions for reachability. Observing the dual graph, we can see if there is a path from top right to bottom left only using blocked cells, then it is obviously impossible to go from top left to bottom right. However, this is only if we can move omnidirectionally. If we can only move down and right, notice that if the top right can reach a cell, then we can essentially block all cells above it and to its right. This is similar for the bottom right. Thus, we can directly merge all necessary cells, since each will only be merged once. To check if something breaks the connectivity, we can see if top right and bottom left are in the same component.</p>
+<h2>Comments</h2>
+<ul>
+<li>duality is cool</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int n, m;
+
+int enc(int a, int b){
+    return a*(m + 1) + b;
+}
+
+int par[1002005];
+vector&lt;pii&gt; ve[1002005];
+
+int bl, tr;
+
+int find(int x){
+    if(x == par[x]) return x;
+    return par[x] = find(par[x]);
+}
+
+void merge(int a, int b){
+    a = find(a), b = find(b);
+    if(a == b) return;
+    if(ve[a].size() &lt; ve[b].size()) swap(a, b);
+    for(pii i : ve[b]) ve[a].pb(i);
+    par[b] = a;
+}
+
+void upd_bl(pii x){
+    for(int i = x.ss - 1; i &gt;= 0; i--){
+        if(find(enc(x.ff, i)) == find(bl)) break;
+        merge(enc(x.ff, i), enc(x.ff, i + 1));
+    }
+    for(int i = x.ff + 1; i &lt;= n; i++){
+        if(find(enc(i, x.ss)) == find(bl)) break;
+        merge(enc(i, x.ss), enc(i - 1, x.ss));
+    }
+}
+
+void upd_tr(pii x){
+    for(int i = x.ss + 1; i &lt;= m; i++){
+        if(find(enc(x.ff, i)) == find(tr)) break;
+        merge(enc(x.ff, i), enc(x.ff, i - 1));
+    }
+    for(int i = x.ff - 1; i &gt;= 0; i--){
+        if(find(enc(i, x.ss)) == find(tr)) break;
+        merge(enc(i, x.ss), enc(i + 1, x.ss));
+    }
+}
+
+bool ins(pii x){
+    int arr[4] = {find(enc(x.ff, x.ss)), find(enc(x.ff + 1, x.ss)), find(enc(x.ff, x.ss + 1)), find(enc(x.ff + 1, x.ss + 1))};
+    bool vis_bl = false, vis_tr = false;
+    for(int i = 0; i &lt; 4; i++){
+        if(arr[i] == find(bl)) vis_bl = true;
+        if(arr[i] == find(tr)) vis_tr = true;
+    }
+    if(vis_bl &amp;&amp; vis_tr) return false;
+    merge(arr[0], arr[1]);
+    merge(arr[1], arr[2]);
+    merge(arr[2], arr[3]);
+    while(ve[find(bl)].size()){
+        pii x = ve[find(bl)].back();
+        ve[find(bl)].pop_back();
+        upd_bl(x);
+    }
+    while(ve[find(tr)].size()){
+        pii x = ve[find(tr)].back();
+        ve[find(tr)].pop_back();
+        upd_tr(x);
+    }
+    return true;
+}
+
+int main(){
+    setIO();
+    cin &gt;&gt; n &gt;&gt; m;
+    bl = enc(n, 0);
+    tr = enc(0, m);
+    vector&lt;pii&gt; v;
+    for(int i = 0; i &lt; n; i++){
+        for(int j = 0; j &lt; m; j++){
+            int x;
+            cin &gt;&gt; x;
+            if(x) v.pb({i, j}); 
+        }
+    }
+    for(int i = 0; i &lt;= n; i++){
+        for(int j = 0; j &lt;= m; j++){
+            par[enc(i, j)] = enc(i, j);
+            ve[enc(i, j)].pb({i, j});
+        }
+    }
+    for(int i = 1; i &lt;= n; i++){
+        merge(bl, enc(i, 0));
+        merge(tr, enc(i - 1, m));
+    }
+    for(int i = 0; i &lt; m; i++){
+        merge(bl, enc(n, i));
+        merge(tr, enc(0, i + 1));
+    }
+    for(pii i : v){
+        assert(ins(i));
+    }
+    int q;
+    cin &gt;&gt; q;
+    while(q--){
+        pii x;
+        cin &gt;&gt; x.ff &gt;&gt; x.ss;
+        x.ff--, x.ss--;
+        cout &lt;&lt; ins(x) &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>

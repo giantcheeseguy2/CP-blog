@@ -1,0 +1,135 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Paired Up (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Paired Up (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">12-21-2023</div></div> <div class="tag-container"><div class="tag"><p> usaco</p></div><div class="tag"><p> dp</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="http://usaco.org/index.php?page=viewproblem2&amp;cpid=1165">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Notice that for a given pairing it is always possible to make it so that none of the pairings cross. This way, our states become easier and we at each state represent a prefix the guernseys and holsteins. Now, we just have to find a way to make a valid pairing with no crossings. Lets store a state for our most recent unpaired cow. If this cow is a guernsey, than we can unpair another guernsey. If it is a holstein we can unpair another holstein. Otherwise, it has to be far enough away. Lets try to remove this state. Since we are unpairing chains of guernseys an dchains of holsteins, it suffices to have a state that says our previous unpaired cow was a guernsey or a holstein. However, how can we know if we can put down a holstein when our previous unpaired cow was a guernsey? Notice that when we pair starting from a state, we keep pairing until we skip a cow. Thus, we can transition from the previous time our unpaired cow was a guernsey and keep pairing until our next unpaired cow is a holstein that is far enough away. However, this requires \(O(N)\) transitions. Instead, of transitioning immediately to unpairing a holstein, we can transition to having both cows on the prefix paired but now unpairing the opposite type of cow. These transitions can be done in \(O(N)\) with precomputing the necessary distance to pair. The code below doesn't do this but it still passes due to weak test data.</p>
+<h2>Comments</h2>
+<ul>
+<li>Skip transitions by let the transitions fix themselves</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int t;
+
+void op(ll &amp;x, ll v){
+    if(t == 2) x = max(x, v);
+    else x = min(x, v);
+}
+
+int main(){
+    setIO();
+    int n, k;
+    cin &gt;&gt; t &gt;&gt; n &gt;&gt; k;
+    vector&lt;pii&gt; v[2];
+    vector&lt;pair&lt;int, pii&gt;&gt; arr;
+    v[0].pb({-INF, 0});
+    v[1].pb({-INF, 0});
+    for(int i = 0; i &lt; n; i++){
+        char c;
+        cin &gt;&gt; c;
+        pii x;
+        cin &gt;&gt; x.ff &gt;&gt; x.ss;
+        v[c - 'G'].pb(x);
+    }
+    //processed up to i and j
+    //which one to skip
+    //has the previous one been skipped or not
+    ll dp[v[0].size()][v[1].size()][2][2];
+    for(int i = 0; i &lt; v[0].size(); i++){
+        for(int j = 0; j &lt; v[1].size(); j++){
+            for(int k = 0; k &lt; 2; k++){
+                dp[i][j][k][0] = dp[i][j][k][1] = (t == 2 ? -LLINF : LLINF);
+            }
+        }
+    }
+    dp[0][0][0][0] = dp[0][0][1][0] = 0;
+    for(int i = 0; i &lt; v[0].size(); i++){
+        for(int j = 0; j &lt; v[1].size(); j++){
+            if(i + 1 &lt; v[0].size()){ // create unpair
+                op(dp[i + 1][j][0][1], dp[i][j][0][0] + v[0][i + 1].ss);
+                op(dp[i + 1][j][0][1], dp[i][j][0][1] + v[0][i + 1].ss);
+
+                if(v[0][i + 1].ff - v[1][j].ff &gt; k){
+                    op(dp[i + 1][j][0][1], dp[i][j][1][1] + v[0][i + 1].ss);
+                }
+            }
+            if(j + 1 &lt; v[1].size()){ // create unpair
+                op(dp[i][j + 1][1][1], dp[i][j][1][0] + v[1][j + 1].ss);
+                op(dp[i][j + 1][1][1], dp[i][j][1][1] + v[1][j + 1].ss);
+
+                if(v[1][j + 1].ff - v[0][i].ff &gt; k){
+                    op(dp[i][j + 1][1][1], dp[i][j][0][1] + v[1][j + 1].ss);
+                }
+            }
+            if(i + 1 &lt; v[0].size() &amp;&amp; j + 1 &lt; v[1].size()){ // create pair
+                if(abs(v[0][i + 1].ff - v[1][j + 1].ff) &lt;= k){
+                    op(dp[i + 1][j + 1][1][0], dp[i][j][1][0]);
+                    op(dp[i + 1][j + 1][1][0], dp[i][j][1][1]);
+                    op(dp[i + 1][j + 1][0][0], dp[i][j][0][0]);
+                    op(dp[i + 1][j + 1][0][0], dp[i][j][0][1]);
+                }
+            }
+            //create series of pairs
+            bool v0 = false, v1 = false;
+            for(int nxt = 1; i + nxt &lt; v[0].size() &amp;&amp; j + nxt &lt; v[1].size(); nxt++){
+                if(abs(v[0][i + nxt].ff - v[1][j + nxt].ff) &gt; k) break;
+                if(i + nxt + 1 &lt; v[0].size()){
+                    if(v[0][i + nxt + 1].ff - v[1][j].ff &gt; k){
+                        op(dp[i + nxt][j + nxt][0][0], dp[i][j][1][1]);
+                        v0 = true;
+                    }
+                }
+                if(j + nxt + 1 &lt; v[1].size()){
+                    if(v[1][j + nxt + 1].ff - v[0][i].ff &gt; k){
+                        op(dp[i + nxt][j + nxt][1][0], dp[i][j][0][1]);
+                        v1 = true;
+                    }
+                }
+                if(v0 &amp;&amp; v1) break;
+            }
+        }
+    }
+    ll ans = (t == 2 ? -LLINF : LLINF);
+    op(ans, dp[v[0].size() - 1][v[1].size() - 1][0][0]);
+    op(ans, dp[v[0].size() - 1][v[1].size() - 1][0][1]);
+    op(ans, dp[v[0].size() - 1][v[1].size() - 1][1][0]);
+    op(ans, dp[v[0].size() - 1][v[1].size() - 1][1][1]);
+    cout &lt;&lt; ans &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

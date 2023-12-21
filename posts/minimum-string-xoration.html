@@ -1,0 +1,145 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Minimum String Xoration (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Minimum String Xoration (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">12-17-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> pst</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1654/problem/F">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Consider what flipping a bit in \(x\) will do to the ordering of the array. Notice that flipping bit \(i\) swaps all adjacent blocks of \(2^i\), similar to fft and fwht. Lets try to brute force all \(x\). If we can perform the swaps fast, then flipping bit \(i\) will require \(\frac{n}{2^{i + 1}}\) swaps. Note that if we perform these bit flips in the right order, then we will use \(n \log n\) swaps in total. Now, how can we swap fast? We can simply go to the respective layer in a implicit segment tree and swap the children of all nodes on that layer. To compare our current result to our answer, we can use pst and hashing.</p>
+<h2>Comments</h2>
+<ul>
+<li>Think before code, there were definitely easier sols</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+const int p1 = 29;
+int pow1[300005];
+
+int seg1[20000005];
+int left0[20000005], right0[20000005];
+int len[20000005];
+int sz = 2;
+int n;
+
+string s;
+
+int copy(int x){
+    seg1[sz] = seg1[x];
+    left0[sz] = left0[x];
+    right0[sz] = right0[x];
+    len[sz] = len[x];
+    return sz++;
+}
+
+void build(int cur, int l = 0, int r = (1 &lt;&lt; n) - 1){
+    if(l == r){
+        seg1[cur] = s[l] - 'a';
+        len[cur] = 1;
+        return;
+    }
+    int mid = (l + r)/2;
+    build(left0[cur] = sz++, l, mid);
+    build(right0[cur] = sz++, mid + 1, r);
+    seg1[cur] = (seg1[left0[cur]] + (ll)seg1[right0[cur]]*pow1[len[left0[cur]]]%MOD)%MOD;
+    len[cur] = len[left0[cur]] + len[right0[cur]];
+}
+
+int query1(int x, int cur, int l = 0, int r = (1 &lt;&lt; n) - 1){
+    if(l == r) return seg1[cur];
+    int mid = (l + r)/2;
+    if(x &lt;= mid) return query1(x, left0[cur], l, mid);
+    else return query1(x, right0[cur], mid + 1, r);
+}
+
+void swp(int v, int cur, int l = 0, int r = (1 &lt;&lt; n) - 1){
+    if(r - l + 1 == (1 &lt;&lt; v)){
+        swap(left0[cur], right0[cur]);
+        seg1[cur] = (seg1[left0[cur]] + (ll)seg1[right0[cur]]*pow1[len[left0[cur]]]%MOD)%MOD;
+        return;
+    }
+    int mid = (l + r)/2;
+    swp(v, left0[cur] = copy(left0[cur]), l, mid);
+    swp(v, right0[cur] = copy(right0[cur]), mid + 1, r);
+    seg1[cur] = (seg1[left0[cur]] + (ll)seg1[right0[cur]]*pow1[len[left0[cur]]]%MOD)%MOD;
+}
+
+//rt1 &lt; rt2
+bool comp1(int rt1, int rt2, int l = 0, int r = (1 &lt;&lt; n) - 1){
+    if(l == r) return seg1[rt1] &gt; seg1[rt2];
+    int mid = (l + r)/2;
+    if(seg1[left0[rt1]] == seg1[left0[rt2]]) return comp1(right0[rt1], right0[rt2], mid + 1, r);
+    return comp1(left0[rt1], left0[rt2], l, mid);
+}
+
+vector&lt;int&gt; v;
+int rt = 1;
+
+void op(int len){
+    rt = copy(rt);
+    swp(len, rt);
+}
+
+bool type[18][1 &lt;&lt; 18];
+
+void dnq(int l, int r, int dep = 0){
+    if(l == r) return;
+    int mid = (l + r)/2;
+    dnq(l, mid, dep + 1);
+    dnq(mid + 1, r, dep + 1);
+    for(int i = mid + 1; i &lt;= r; i++) type[dep][i] = true;
+}
+
+int main(){
+    setIO();
+    cin &gt;&gt; n;
+    pow1[0] = 1;
+    for(int i = 1; i &lt; (1 &lt;&lt; n); i++){
+        pow1[i] = (ll)pow1[i - 1]*p1%MOD;
+    }
+    cin &gt;&gt; s;
+    build(rt);
+    int ans = 1;
+    dnq(0, (1 &lt;&lt; n) - 1);
+    for(int i = 1; i &lt; (1 &lt;&lt; n); i++){
+        for(int j = 0; j &lt; 18; j++){
+            if(type[j][i] != type[j][i - 1]) op(j + 1);
+        }
+        if(comp1(ans, rt)) ans = rt;
+    }
+    for(int i = 0; i &lt; (1 &lt;&lt; n); i++) cout &lt;&lt; (char)('a' + query1(i, ans));
+    cout &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

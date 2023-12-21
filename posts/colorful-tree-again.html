@@ -1,0 +1,159 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Colorful Tree Again (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Colorful Tree Again (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">12-21-2023</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> tree</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1787/problem/G">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets look at the paths that blocking a node will affect. There can be alot, so lets try to reduce the amount we have to directly update. Notice that in a rooted tree, only one path will be coming out of a node. All other paths will will go through one or two of its children. Thus, if we group each path into its lca, we will only have to update two nodes: the node itself as the lca, and the lca of the path that comes out of this node. This can be done by maintaining multiple multisets.</p>
+<h2>Comments</h2>
+<ul>
+<li>Reduce amount of things you have to directly update through observations/grouping etc.</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+vector&lt;int&gt; g[200005];
+int par[200005];
+int depth[200005];
+ll weight[200005];
+multiset&lt;ll&gt; alive[200005];
+bool active[200005];
+int head[200005];
+int val[200005];
+int in[200005];
+multiset&lt;ll&gt; mx;
+
+void dfs(int x, int p = 0){
+    par[x] = p;
+    depth[x] = depth[p] + 1;
+    for(int i : g[x]){
+        if(i == p) continue;
+        dfs(i, x);
+    }
+}
+
+int main(){
+    setIO();
+    int n, q;
+    cin &gt;&gt; n &gt;&gt; q;
+    vector&lt;pair&lt;int, pii&gt;&gt; e[n + 1];
+    for(int i = 1; i &lt; n; i++){
+        int a, b, c, d;
+        cin &gt;&gt; a &gt;&gt; b &gt;&gt; c &gt;&gt; d;
+        e[d].pb({c, {a, b}});
+        g[a].pb(b);
+        g[b].pb(a);
+    }
+    dfs(1);
+    int deg[n + 1];
+    memset(deg, 0, sizeof(deg));
+    for(int i = 1; i &lt;= n; i++){
+        if(e[i].size() == 0) continue;
+        vector&lt;int&gt; v;
+        for(pair&lt;int, pii&gt; j : e[i]){
+            weight[i] += j.ff;
+            deg[j.ss.ff]++;
+            deg[j.ss.ss]++;
+            v.pb(j.ss.ff);
+            v.pb(j.ss.ss);
+        }
+        sort(v.begin(), v.end());
+        v.resize(unique(v.begin(), v.end()) - v.begin());
+        vector&lt;int&gt; one;
+        bool fail = false;
+        for(int j : v){
+            if(deg[j] == 1) one.pb(j);
+            else if(deg[j] &gt; 2) fail = true;
+            deg[j] = 0;
+        }
+        if(fail || one.size() != 2) continue;
+        int a = one[0], b = one[1];
+        vector&lt;int&gt; path;
+        while(a != b){
+            if(depth[a] &gt; depth[b]) swap(a, b);
+            path.pb(b);
+            b = par[b];
+        }
+        for(int j : path){
+            head[j] = a;
+            val[j] = i;
+        }
+        alive[a].insert(weight[i]);
+    }
+    mx.insert(0);
+    for(int i = 1; i &lt;= n; i++){
+        active[i] = true;
+        alive[i].insert(0);
+        mx.insert(*alive[i].rbegin());
+    }
+    while(q--){
+        int a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        if(active[b]){
+            mx.erase(mx.find(*alive[b].rbegin()));
+            active[b] = false;
+            if(val[b]){
+                if(!in[val[b]]){
+                    if(active[head[b]]){
+                        mx.erase(mx.find(*alive[head[b]].rbegin()));
+                    }
+                    alive[head[b]].erase(alive[head[b]].find(weight[val[b]]));
+                    if(active[head[b]]){
+                        mx.insert(*alive[head[b]].rbegin());
+                    }
+                }
+                in[val[b]]++;
+            }
+        } else {
+            mx.insert(*alive[b].rbegin());
+            active[b] = true;
+            if(val[b]){
+                in[val[b]]--;
+                if(!in[val[b]]){
+                    if(active[head[b]]){
+                        mx.erase(mx.find(*alive[head[b]].rbegin()));
+                    }
+                    alive[head[b]].insert(weight[val[b]]);
+                    if(active[head[b]]){
+                        mx.insert(*alive[head[b]].rbegin());
+                    }
+                }
+            }
+        }
+        cout &lt;&lt; *mx.rbegin() &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>
