@@ -1,0 +1,186 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Train Scheduling (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Train Scheduling (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">2-11-2024</div></div> <div class="tag-container"><div class="tag"><p> usaco</p></div><div class="tag"><p> dp</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="http://usaco.org/index.php?page=viewproblem2&amp;cpid=1358">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Consider a dp solution where we store the position on the left, right, and the current time. Note that there are only \(N^2\) states for time, since its in the form of \(t_i + T \cdot k\). Now, notice that for \(k &gt; 0\), the left and right states are uniquely determined. Thus, we can store a separate transition between \(k = 0\) and \(k &gt; 0\) states.</p>
+<h2>Comments</h2>
+<ul>
+<li>Try to figure out how some states can determine other states</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+void chmin(ll &amp;a, ll b){
+    a = min(a, b);
+}
+
+int main(){
+    setIO();
+    int n;
+    ll t;
+    cin &gt;&gt; n &gt;&gt; t;
+    vector&lt;ll&gt; a, b;
+    vector&lt;pll&gt; dict;
+    for(int i = 0; i &lt; n; i++){
+        char x;
+        cin &gt;&gt; x;
+        ll v;
+        cin &gt;&gt; v;
+        if(x == 'A'){
+            dict.pb({v, 0});
+            a.pb(v);
+        } else {
+            dict.pb({v, 1});
+            b.pb(v);
+        }
+    }
+    a.pb(-LLINF);
+    b.pb(-LLINF);
+    dict.pb({-LLINF, 0});
+    dict.pb({-LLINF, 1});
+    sort(dict.begin(), dict.end());
+    sort(a.begin(), a.end());
+    sort(b.begin(), b.end());
+
+    ll prea[a.size()], preb[b.size()];
+    prea[0] = a[0];
+    preb[0] = b[0];
+    for(int i = 1; i &lt; a.size(); i++) prea[i] = prea[i - 1] + a[i];
+    for(int i = 1; i &lt; b.size(); i++) preb[i] = preb[i - 1] + b[i]; 
+
+    ll dpl[a.size()][b.size()]; // left, dpl[i + 1][j] = dpl[i][j]
+    ll dpr[a.size()][b.size()]; // right, dpr[i][j + 1] = dpr[i][j]
+
+    int lim = min(a.size(), b.size())*2;
+
+    ll dpl0[a.size()][lim + 1];
+    ll dpr0[b.size()][lim + 1];
+
+    for(int i = 0; i &lt; a.size(); i++) for(int j = 0; j &lt; b.size(); j++) dpl[i][j] = dpr[i][j] = LLINF;
+
+    for(int i = 0; i &lt; a.size(); i++) for(int j = 0; j &lt;= lim; j++) dpl0[i][j] = LLINF;
+    for(int i = 0; i &lt; b.size(); i++) for(int j = 0; j &lt;= lim; j++) dpr0[i][j] = LLINF;
+
+    if(a.size() &gt; 1) dpl[1][0] = 0;
+    if(b.size() &gt; 1) dpr[0][1] = 0;
+    ll ans = LLINF;
+
+    for(int ind = 0; ind &lt; dict.size(); ind++){
+        if(dict[ind].ss == 0){
+            int i = lower_bound(a.begin(), a.end(), dict[ind].ff) - a.begin();
+            {
+            int ind = upper_bound(b.begin(), b.end(), a[i] + t) - b.begin() - 1;
+            for(int j = 0; j &lt; b.size(); j++){
+                if(i + 1 &lt; a.size()) chmin(dpl[i + 1][j], dpl[i][j]);
+                { // switch left to right
+                    
+                    if(ind &gt;= j){
+                        chmin(dpl0[i][1], dpl[i][j] + (a[i] + t)*(ind - j) - (preb[ind] - preb[j]));
+                    }
+                }
+            }
+            }
+            // update left
+            int prv1 = upper_bound(a.begin(), a.end(), a[i]) - a.begin() - 1;
+            int prv0 = upper_bound(b.begin(), b.end(), a[i] + t) - b.begin() - 1;
+            for(int j = 1; j &lt;= lim; j++){
+                if(j%2 == 1){ // on right side
+                    int l = prv1;
+                    int r = upper_bound(a.begin(), a.end(), a[i] + t*(j + 1)) - a.begin() - 1;
+                    if(j + 1 &lt;= lim){
+                        chmin(dpl0[i][j + 1], dpl0[i][j] + (a[i] + t*(j + 1))*(r - l) - (prea[r] - prea[l]));
+                    }
+
+                    int ind = upper_bound(b.begin(), b.end(), a[i] + t*j) - b.begin();
+                    if(ind &lt; b.size()) chmin(dpr[l][ind], dpl0[i][j]);
+                    if(ind == b.size() &amp;&amp; l == a.size() - 1) chmin(ans, dpl0[i][j]);
+                    
+                    prv1 = r;
+                } else { // on left side
+                    int l = prv0;
+                    int r = upper_bound(b.begin(), b.end(), a[i] + t*(j + 1)) - b.begin() - 1;
+                    if(j + 1 &lt;= lim){
+                        chmin(dpl0[i][j + 1], dpl0[i][j] + (a[i] + t*(j + 1))*(r - l) - (preb[r] - preb[l]));
+                    }
+
+                    int ind = upper_bound(a.begin(), a.end(), a[i] + t*j) - a.begin();
+                    if(ind &lt; a.size()) chmin(dpl[ind][l], dpl0[i][j]);
+                    if(ind == a.size() &amp;&amp; l == b.size() - 1) chmin(ans, dpl0[i][j]);
+
+                    prv0 = r;
+                }
+            }
+        } else {
+            int i = lower_bound(b.begin(), b.end(), dict[ind].ff) - b.begin();
+            {
+            int ind = upper_bound(a.begin(), a.end(), b[i] + t) - a.begin() - 1;
+            for(int j = 0; j &lt; a.size(); j++){
+                if(i + 1 &lt; b.size()) chmin(dpr[j][i + 1], dpr[j][i]);
+                { // switch right to left
+
+                    if(ind &gt;= j){
+                        chmin(dpr0[i][1], dpr[j][i] + (b[i] + t)*(ind - j) - (prea[ind] - prea[j]));
+                    }
+                }
+            }
+            }
+            // update right
+            int prv1 = upper_bound(b.begin(), b.end(), b[i]) - b.begin() - 1;
+            int prv0 = upper_bound(a.begin(), a.end(), b[i] + t) - a.begin() - 1;
+            for(int j = 1; j &lt;= lim; j++){
+                if(j%2 == 1){ // on left side
+                    int l = prv1;
+                    int r = upper_bound(b.begin(), b.end(), b[i] + t*(j + 1)) - b.begin() - 1;
+                    if(j + 1 &lt;= lim){
+                        chmin(dpr0[i][j + 1], dpr0[i][j] + (b[i] + t*(j + 1))*(r - l) - (preb[r] - preb[l]));
+                    }
+
+                    int ind = upper_bound(a.begin(), a.end(), b[i] + t*j) - a.begin();
+                    if(ind &lt; a.size()) chmin(dpl[ind][l], dpr0[i][j]);
+                    if(ind == a.size() &amp;&amp; l == b.size() - 1) chmin(ans, dpr0[i][j]);
+
+                    prv1 = r;
+                } else { // on right side
+                    int l = prv0;
+                    int r = upper_bound(a.begin(), a.end(), b[i] + t*(j + 1)) - a.begin() - 1;
+                    if(j + 1 &lt;= lim){
+                        chmin(dpr0[i][j + 1], dpr0[i][j] + (b[i] + t*(j + 1))*(r - l) - (prea[r] - prea[l]));
+                    }
+
+                    int ind = upper_bound(b.begin(), b.end(), b[i] + t*j) - b.begin();
+                    if(ind &lt; b.size()) chmin(dpr[l][ind], dpr0[i][j]);
+                    if(ind == b.size() &amp;&amp; l == a.size() - 1) chmin(ans, dpr0[i][j]);
+
+                    prv0 = r;
+                }
+            }
+        }
+    }
+    chmin(ans, dpl[a.size() - 1][b.size() - 1]);
+    chmin(ans, dpr[a.size() - 1][b.size() - 1]);
+    cout &lt;&lt; ans &lt;&lt; endl;
+}
+</code></pre>
+</div> </body> </html>

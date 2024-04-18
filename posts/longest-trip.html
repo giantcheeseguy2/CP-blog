@@ -1,0 +1,104 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Longest Trip (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Longest Trip (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">1-22-2024</div></div> <div class="tag-container"><div class="tag"><p> qoj</p></div><div class="tag"><p> ad hoc</p></div><div class="tag"><p> interactive</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://qoj.ac/contest/1337/problem/7119">Problem Link</a></p>
+<h2>Solution</h2>
+<p>First of all, notice that either the entire graph is connected or there are exactly two cliques. Lets assume that the entire graph is connected for simplicity. Furthermore, if the graph is connected, there must always be a hamiltonian path. Consider constructing any hamiltonian path and encountering a new node. If this node is connected to either ends of the path so far, we can attach it to the end. However, if it is attached to neither, this means that our path so far is a loop and the new node must be attached to some node on that loop so we can rotate the loop until the new node is attached to an end of the path. How can we optimize this to use less queries? Instead of only maintaining one path so far, what if we maintained two? Then, if we add a new node it either connets to one of the two path ends or the two path ends connect to each other and can be merged. At the end, we just need to find some rotation of the paths that allow them to be linked which can be done with a binary search. However, this is still too slow by a constant factor. To optimize this, we can notice that some comparisons aren't needed based on prior results.</p>
+<h2>Comments</h2>
+<ul>
+<li>Translate conditions into structure</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#include &quot;longesttrip.h&quot;
+#endif
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+#ifdef LOCAL
+bool are_connected(std::vector&lt;int&gt; A, std::vector&lt;int&gt; B);
+#endif
+
+mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+inline int random(int l, int r) { return uniform_int_distribution&lt;int&gt;(l, r)(rng); }
+
+std::vector&lt;int&gt; longest_trip(int n, int d){
+    vector&lt;int&gt; path1, path2;
+    vector&lt;int&gt; active;
+    path1.pb(0);
+    path2.pb(1);
+    for(int i = 2; i &lt; n; i++) active.pb(i);
+    random_shuffle(active.begin(), active.end());
+    int prv = -1;
+    for(int x : active){
+        if(are_connected({path1.back()}, {x})){
+            path1.pb(x);
+            prv = 0;
+        } else if(prv == 1 || are_connected({path2.back()}, {x})){
+            path2.pb(x);
+            prv = 1;
+        } else {
+            reverse(path2.begin(), path2.end());
+            for(int i : path2) path1.pb(i);
+            path2.clear();
+            path2.pb(x);
+            prv = 2;
+        }
+    }
+    if(!are_connected(path1, path2)){
+        if(path1.size() &gt; path2.size()) return path1;
+        return path2;
+    }
+    if(are_connected({path1.back()}, {path2.back()})){
+        reverse(path2.begin(), path2.end());
+    } else if(!are_connected({path1.back()}, {path2.front()})){
+        int l = 0, r = path1.size() - 1;
+        while(l &lt; r){
+            int mid = (l + r)/2;
+            vector&lt;int&gt; v;
+            for(int i = l; i &lt;= mid; i++) v.pb(path1[i]);
+            if(!are_connected(v, path2)) l = mid + 1;
+            else r = mid;
+        }
+        rotate(path1.begin(), path1.begin() + l, path1.end());
+        l = 0, r = path2.size() - 1;
+        while(l &lt; r){
+            int mid = (l + r)/2;
+            vector&lt;int&gt; v;
+            for(int i = l; i &lt;= mid; i++) v.pb(path2[i]);
+            if(!are_connected({path1[0]}, v)) l = mid + 1;
+            else r = mid;
+        }
+        rotate(path2.begin(), path2.begin() + l, path2.end());
+        reverse(path1.begin(), path1.end());
+    }
+    for(int i : path2) path1.pb(i);
+    return path1;
+}
+</code></pre>
+</div> </body> </html>

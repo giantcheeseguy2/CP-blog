@@ -1,0 +1,95 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Ski Accidents (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Ski Accidents (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">1-25-2024</div></div> <div class="tag-container"><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1368/problem/E">Problem Link</a></p>
+<h2>Solution</h2>
+<p>The conditions for a good graph require each node to have either no incoming edges or no outgoing edges. Thus, for each node that has both incoming edges and outgoing edges, we either delete that node, delete all incoming nodes, or delete all outgoing nodes. It may seem intuitive that we can just try each one of those three options and simply always delete that option when processing nodes in topological order, and this does in fact works if we always delete all outgoing nodes. To prove this, lets consider what nodes will be deleted by doing this process. We first need a set of nodes \(A\) which represents all incoming nodes, a set of nodes \(B\) which represents all intermediary nodes, and a set of nodes \(C\) which represents all deleted nodes. We have \(|B| \le 2 |A|\) and \(|C| \le 2 |B|\). In the worst case, \(|C| = 4 |A|\), \(|B| = 2 |A|\), and \(N = |A| + |B| + |C| = 7 |A|\). So, \(|C| \le \frac{4}{7} N\).</p>
+<h2>Comments</h2>
+<ul>
+<li>If stuck, try out some intuitive strategies and maybe try to prove them</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int main(){
+    setIO();
+    int T;
+    cin &gt;&gt; T;
+    for(int tt = 1; tt &lt;= T; tt++){
+        int n, m;
+        cin &gt;&gt; n &gt;&gt; m;
+        vector&lt;int&gt; g[n + 1];
+        int in1[n + 1], in2[n + 1];
+        memset(in1, 0, sizeof(in1));
+        memset(in2, 0, sizeof(in2));
+        for(int i = 0; i &lt; m; i++){
+            int a, b;
+            cin &gt;&gt; a &gt;&gt; b;
+            g[a].pb(b);
+            in1[b]++;
+        }
+        for(int i = 1; i &lt;= n; i++){
+            if(in1[i]){
+                for(int j : g[i]) in2[j]++;
+            }
+        }
+        vector&lt;int&gt; ans;
+        for(int i = 1; i &lt;= n; i++){
+            if(in2[i]){
+                ans.pb(i);
+                for(int j : g[i]){
+                    in1[j]--;
+                    if(in1[j] == 0){
+                        for(int k : g[j]){
+                            in2[k]--;
+                        }
+                    }
+                }
+                if(in1[i]){
+                    for(int j : g[i]){
+                        in2[j]--;
+                    }
+                }
+            }
+        }
+        //assert(ans.size() &lt;= 4*n/7);
+        cout &lt;&lt; ans.size() &lt;&lt; endl;
+        for(int i : ans) cout &lt;&lt; i &lt;&lt; &quot; &quot;;
+        cout &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>

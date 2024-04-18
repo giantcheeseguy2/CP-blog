@@ -1,0 +1,103 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | 01 Tree (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>01 Tree (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">1-22-2024</div></div> <div class="tag-container"><div class="tag"><p> cf</p></div><div class="tag"><p> ad hoc</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://codeforces.com/contest/1919/problem/D">Problem Link</a></p>
+<h2>Solution</h2>
+<p>Lets consider the construction of a valid tree and how its array looks. Notice that when we decide to branch out from a node, its the equivalent of inserting \(x + 1\) to the right or left of any element \(x\) in the array. This means that we can unconstruct the tree by repeatedly removing \(x + 1\) from any adjacent \(x + 1, x\) pairs until there is only a single \(0\) remaining. Thus, we check every component of the largest value \(x\), ensure that they neighbor a value \(x - 1\), remove it, then recurse to \(x - 1\).</p>
+<h2>Comments</h2>
+<ul>
+<li>Try all perspectives, such as finding the answer from the construction of the problem</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#pragma GCC target(&quot;sse4,popcnt,abm,mmx,tune=native&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+#include &lt;ext/pb_ds/assoc_container.hpp&gt;
+#include &lt;ext/pb_ds/tree_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef long double ld;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+typedef pair&lt;ld, ld&gt; pld;
+
+const int INF = 1e9;
+const ll LLINF = 1e18;
+const int MOD = 1e9 + 7;
+
+template&lt;class K&gt; using sset =  tree&lt;K, null_type, less&lt;K&gt;, rb_tree_tag, tree_order_statistics_node_update&gt;;
+
+inline ll ceil0(ll a, ll b) {
+    return a / b + ((a ^ b) &gt; 0 &amp;&amp; a % b);
+}
+
+void setIO() {
+    ios_base::sync_with_stdio(0); cin.tie(0);
+}
+
+int par[200005];
+
+int find(int x){
+    if(x == par[x]) return x;
+    return par[x] = find(par[x]);
+}
+
+int main(){
+    setIO();
+    int T;
+    cin &gt;&gt; T;
+    for(int tt = 1; tt &lt;= T; tt++){
+        int n;
+        cin &gt;&gt; n;
+        int arr[n];
+        for(int i = 0; i &lt; n; i++) par[i] = i;
+        pii range[n];
+        for(int i = 0; i &lt; n; i++) range[i] = {i, i};
+        vector&lt;int&gt; v[n];
+        for(int i = 0; i &lt; n; i++) cin &gt;&gt; arr[i], v[arr[i]].pb(i); 
+        for(int i = 0; i &lt; n - 1; i++){
+            if(arr[i] == arr[i + 1]){
+                pii x = range[find(i)];
+                pii y = range[find(i + 1)];
+                par[find(i)] = find(i + 1);
+                range[find(i + 1)] = {min(x.ff, y.ff), max(x.ss, y.ss)};
+            }
+        }
+        bool ans = v[0].size() == 1;
+        for(int i = n - 1; i &gt;= 1; i--){
+            for(int j : v[i]){
+                pii x = range[find(j)];
+                bool val = false;
+                val |= (x.ff &gt; 0 &amp;&amp; arr[x.ff - 1] == i - 1);
+                val |= (x.ss + 1 &lt; n &amp;&amp; arr[x.ss + 1] == i - 1);
+                ans &amp;= val;
+            }
+            for(int j : v[i]){
+                pii x = range[find(j)];
+                if(x.ff &gt; 0 &amp;&amp; arr[x.ff - 1] == i - 1){
+                    pii y = range[find(x.ff - 1)];
+                    par[find(j)] = find(x.ff - 1);
+                    range[find(x.ff - 1)] = {min(x.ff, y.ff), max(x.ss, y.ss)};
+                }
+                x = range[find(j)];
+                if(x.ss + 1 &lt; n &amp;&amp; arr[x.ss + 1] == i - 1){
+                    pii y = range[find(x.ss + 1)];
+                    par[find(j)] = find(x.ss + 1);
+                    range[find(x.ss + 1)] = {min(x.ff, y.ff), max(x.ss, y.ss)};
+                }
+            }
+        }
+        cout &lt;&lt; (ans ? &quot;YES&quot; : &quot;NO&quot;) &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>
