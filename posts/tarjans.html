@@ -18,7 +18,7 @@
 	}
 	if(low[x] == dfn[x]){
 		while(st.top() != x){
-			in[s.top()] = false;
+			in[st.top()] = false;
 			comp[st.top()] = x;
 			st.pop();
 		}

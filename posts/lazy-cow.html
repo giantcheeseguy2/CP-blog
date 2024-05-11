@@ -1,0 +1,178 @@
+<html> <head> <link rel="stylesheet" href="../css/tags.css"> <link rel="stylesheet" href="../highlight/styles/default.min.css"> <script src="../highlight/highlight.min.js"></script> <script>hljs.highlightAll();</script> <link rel="stylesheet" href="../css/blog.css"> <link rel="stylesheet" href="../css/navbar.css"> <link rel="stylesheet" href="../css/searchbar.css"> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <title>Oursaco Blog | Lazy Cow (Tutorial)</title> </head> <body style="margin:0;"><div class="navbar"> <img src="../images/logo.jpg" class="logo"> <div class="title"><b>Oursaco</b> Blog</div> <button class="button" onclick="window.location.href='../index.html'"><a href="../index.html">Home</a></button> <button class="button" onclick="window.location.href='../about.html'"><a href="../about.html">About</a></button> <button class="button" onclick="window.location.href='../links.html'"><a href="../links.html">Links</a></button> </div> <div style="width:100%;height:15%;"></div> <div class="blog"><h1>Lazy Cow (Tutorial)</h1>
+<div style="font-family:Helvetica; font-size:15px; text-align:center; padding:10px;">4-25-2024</div></div> <div class="tag-container"><div class="tag"><p> usaco</p></div><div class="tag"><p> chtholly tree</p></div><div class="tag"><p> segtree</p></div><div class="tag"><p> greedy</p></div><div class="tag"><p> tutorial</p></div></div> <div class="blog"><hr />
+<h2>Problem Statement</h2>
+<p><a href="https://usaco.org/index.php?page=viewproblem2&amp;cpid=1404">Problem Link</a></p>
+<h2>Solution</h2>
+<p>The cost function scales exponentially, so it makes sene for a given query, our optimal strategy is to always choose the lowest cost test case and prepare that. Furthermore, it is always optimal to break ties by preparing a test case further left than further right, since it will be effective in more queries. Thus, the amount of test cases of each index prepared will be monotonically decreasing. There is one additional case, where we need to prepare additional test cases for a prefix, but there are still test cases outside the prefix. In this case, it is optimal to greedily to choose the highest cost rightmost index to decrease. Since the values are monotonically decreasing, we can use a chtholly tree to maintain the intervals of identical values. It is easy to see that each update will create \(O(1)\) additional intervals.</p>
+<h2>Comments</h2>
+<ul>
+<li>Greedy guessing is valid</li>
+</ul>
+<h2>Code</h2>
+<pre><code class="language-c++">#ifndef LOCAL
+#pragma GCC optimize(&quot;O3,unroll-loops&quot;)
+#pragma GCC target(&quot;avx,avx2,fma&quot;)
+#endif
+#include &lt;bits/stdc++.h&gt;
+using namespace std;
+
+#define pb push_back
+#define ff first
+#define ss second
+
+typedef long long ll;
+typedef pair&lt;int, int&gt; pii;
+typedef pair&lt;ll, ll&gt; pll;
+
+void setIO(){
+    cin.tie(0) -&gt; sync_with_stdio(0);
+}
+
+const int MOD = 1e9 + 7;
+const int INF = 1e9;
+const ll LLINF = 1e18;
+
+int fpow(int a, ll b){
+    int ret = 1;
+    while(b){
+        if(b%2 == 1) ret = (ll)ret*a%MOD;
+        a = (ll)a*a%MOD;
+        b /= 2;
+    }
+    return ret;
+}
+
+struct Sum {
+    ll seg[4000005];
+    ll tag[4000005];
+
+    void push_down(int cur, int l, int r){
+        int mid = (l + r)/2;
+
+        seg[cur*2 + 2] += tag[cur]*(r - mid);
+        seg[cur*2 + 1] += tag[cur]*(mid - l + 1);
+
+        tag[cur*2 + 2] += tag[cur];
+        tag[cur*2 + 1] += tag[cur];
+        tag[cur] = 0;
+    }
+
+    void update(int l, int r, ll v, int ul = 0, int ur = 1e6, int cur = 0){
+        if(l &lt;= ul &amp;&amp; ur &lt;= r){
+            seg[cur] += (ll)v*(ur - ul + 1);
+            tag[cur] += v;
+            return;
+        }
+        push_down(cur, ul, ur);
+        int mid = (ul + ur)/2;
+        if(l &lt;= mid) update(l, r, v, ul, mid, cur*2 + 1);
+        if(r &gt; mid) update(l, r, v, mid + 1, ur, cur*2 + 2);
+        seg[cur] = seg[cur*2 + 1] + seg[cur*2 + 2];
+    }
+
+    ll query(int l, int r, int ul = 0, int ur = 1e6, int cur = 0){
+        if(l &lt;= ul &amp;&amp; ur &lt;= r) return seg[cur];
+        if(ur &lt; l || ul &gt; r) return 0;
+        push_down(cur, ul, ur);
+        int mid = (ul + ur)/2;
+        return query(l, r, ul, mid, cur*2 + 1) + query(l, r, mid + 1, ur, cur*2 + 2);
+    }
+} sum_seg;
+
+set&lt;pair&lt;pii, ll&gt;&gt; s;
+
+void split(int x){
+    pair&lt;pii, ll&gt; v = *prev(s.lower_bound({{x + 1, -1}, -1}));
+    if(v.ff.ss &gt; x){
+        s.erase(v);
+        s.insert({{v.ff.ff, x}, v.ss});
+        s.insert({{x + 1, v.ff.ss}, v.ss});
+    }
+}
+
+//3^b - 3^a
+int calc(int len, ll a, ll b){
+    if(a == 0) return (ll)fpow(3, b - 1)*len%MOD;
+    if(b == 0) return (ll)(MOD - fpow(3, a - 1))*len%MOD;
+    return (ll)(fpow(3, b - 1) + MOD - fpow(3, a - 1))*len%MOD;
+}
+
+int main(){
+    int n;
+    cin &gt;&gt; n;
+    s.insert({{1, 1e6}, 0});
+    s.insert({{0, 0}, LLINF});
+    s.insert({{1e6 + 1, 1e6 + 1}, 0});
+    int ans = 0;
+    ll sum = 0;
+    for(int i = 0; i &lt; n; i++){
+        ll a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        sum += b;
+        b -= sum_seg.query(1, a);
+        split(a);
+        ll need = 0;
+        while(b &gt; 0){
+            set&lt;pair&lt;pii, ll&gt;&gt;::iterator it = prev(s.lower_bound({{a + 1, -1}, -1}));
+            pair&lt;pii, ll&gt; v = *it;
+            int len = v.ff.ss - v.ff.ff + 1;
+            pair&lt;pii, ll&gt; prv = *prev(it);
+            if(prv.ss == v.ss){
+                s.erase(prv);
+                s.erase(v);
+                s.insert({{prv.ff.ff, v.ff.ss}, v.ss});
+                continue;
+            }
+            if(b &gt;= len){
+                ll lim = prv.ss - v.ss;
+                ll cnt = min(lim, b/len);
+                need += cnt*len;
+                b -= cnt*len;
+                s.erase(v);
+                s.insert({v.ff, v.ss + cnt});
+                (ans += calc(len, v.ss, v.ss + cnt)) %= MOD;
+                sum_seg.update(v.ff.ff, v.ff.ss, cnt);
+            } else {
+                s.erase(v);
+                s.insert({{v.ff.ff, v.ff.ff + b - 1}, v.ss + 1});
+                s.insert({{v.ff.ff + b, v.ff.ss}, v.ss});
+                (ans += calc(b, v.ss, v.ss + 1)) %= MOD;
+                sum_seg.update(v.ff.ff, v.ff.ff + b - 1, 1);
+                need += b;
+                b = 0;
+            }
+        }
+        while(need &gt; 0){
+            set&lt;pair&lt;pii, ll&gt;&gt;::iterator it = s.lower_bound({{a + 1, -1}, -1});
+            pair&lt;pii, ll&gt; v = *it;
+            if(v.ss == 0) break;
+            int len = v.ff.ss - v.ff.ff + 1;
+            pair&lt;pii, ll&gt; nxt = *next(it);
+            if(nxt.ss == v.ss){
+                s.erase(nxt);
+                s.erase(v);
+                s.insert({{v.ff.ff, nxt.ff.ss}, v.ss});
+                continue;
+            }
+            if(need &gt;= len){
+                ll lim = v.ss - nxt.ss;
+                ll cnt = min(lim, need/len);
+                need -= cnt*len;
+                s.erase(v);
+                s.insert({v.ff, v.ss - cnt});
+                (ans += calc(len, v.ss, v.ss - cnt)) %= MOD;
+                sum_seg.update(v.ff.ff, v.ff.ss, -cnt);
+            } else {
+                s.erase(v);
+                s.insert({{v.ff.ss - need + 1, v.ff.ss}, v.ss - 1});
+                (ans += calc(need, v.ss, v.ss - 1)) %= MOD;
+                s.insert({{v.ff.ff, v.ff.ss - need}, v.ss});
+                sum_seg.update(v.ff.ss - need + 1, v.ff.ss, -1);
+                need = 0;
+            }
+        }
+        cout &lt;&lt; ans &lt;&lt; endl;
+    }
+}
+</code></pre>
+</div> </body> </html>
